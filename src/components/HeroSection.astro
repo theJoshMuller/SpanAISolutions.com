@@ -1,0 +1,12 @@
+---
+import { siteMeta } from '../data/site';
+---
+
+<section class="hero section page-shell" aria-labelledby="hero-title">
+  <div class="hero__panel">
+    <p class="hero__kicker">Human-first AI sales support</p>
+    <h1 id="hero-title" class="hero__title">{siteMeta.heroHeadline}</h1>
+    <p class="hero__subhead">{siteMeta.heroSubhead}</p>
+    <a class="button button--primary" href={`mailto:${siteMeta.contactEmail}`}>Email sales</a>
+  </div>
+</section>

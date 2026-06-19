@@ -1,10 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import HeroSection from '../components/HeroSection.astro';
 import { siteMeta } from '../data/site';
 ---
 
 <BaseLayout title={siteMeta.title} description={siteMeta.description}>
-  <main class="page-shell">
-    <p>Span AI Solutions</p>
+  <SiteHeader />
+  <main>
+    <HeroSection />
   </main>
 </BaseLayout>
