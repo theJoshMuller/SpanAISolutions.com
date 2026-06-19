@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "SpanAISolutions_com",
+  "project_id": "118be000-aed6-4286-9b95-b5f4ded0e353"
+}
