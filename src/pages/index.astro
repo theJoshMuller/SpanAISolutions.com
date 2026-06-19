@@ -1,13 +1,10 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteMeta } from '../data/site';
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Span AI Solutions</title>
-  </head>
-  <body>
-    <main>Span AI Solutions</main>
-  </body>
-</html>
+<BaseLayout title={siteMeta.title} description={siteMeta.description}>
+  <main class="page-shell">
+    <p>Span AI Solutions</p>
+  </main>
+</BaseLayout>
