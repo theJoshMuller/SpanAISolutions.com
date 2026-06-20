@@ -1,13 +1,31 @@
 # SpanAISolutions.com
 
-Temporary bootstrap repo for the Span AI Solutions website.
+Premium one-page Astro marketing site for Span AI Solutions.
 
-## Current state
+## Stack
 
-- GitHub repo + Netlify site bootstrap
-- Temporary placeholder deploy so DNS can be connected early
-- Full Astro implementation will follow the design/spec process
+- Astro
+- Vanilla CSS
+- Playwright smoke tests
+- Netlify deployment via GitHub
 
-## Contact
+## Local development
 
-sales@spanaisolutions.com
+```bash
+npm install
+npm run dev
+```
+
+## Quality checks
+
+```bash
+npm run check
+npm run build
+npm run test:e2e
+```
+
+## Deployment
+
+Pushes to `main` trigger Netlify production deploys for:
+
+- `https://spanaisolutions.netlify.app`
