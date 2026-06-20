@@ -311,3 +311,15 @@ button, input, textarea, select { font: inherit; }
     grid-template-columns: 1fr;
   }
 }
+.cta-panel {
+  padding: clamp(28px, 5vw, 56px);
+  border-radius: 32px;
+  border: 1px solid rgba(155, 228, 185, 0.2);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+  box-shadow: var(--shadow);
+}
+
+.cta-note {
+  margin: 18px 0 0;
+  color: var(--muted);
+}

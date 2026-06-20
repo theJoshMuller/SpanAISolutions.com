@@ -115,3 +115,28 @@ test('who it is for identifies the four target buyer groups', async ({ page }) =
     'Businesses that need more sales throughput without more administrative drag',
   ]);
 });
+
+test('final CTA offers a direct email path with visible fallback text', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(
+    page.getByRole('heading', { name: 'Ready for more closing and less chasing?' })
+  ).toBeVisible();
+
+  const regions = page.getByRole('region', {
+    name: 'Ready for more closing and less chasing?',
+  });
+  await expect(regions).toHaveCount(1);
+
+  const finalSection = regions.first();
+  await expect(
+    finalSection.getByRole('heading', { name: 'Ready for more closing and less chasing?' })
+  ).toBeVisible();
+  await expect(finalSection.getByRole('link', { name: 'Email sales' })).toHaveAttribute(
+    'href',
+    'mailto:sales@spanaisolutions.com'
+  );
+  await expect(
+    finalSection.getByText('Prefer a direct conversation? Reach us at sales@spanaisolutions.com.')
+  ).toBeVisible();
+});
