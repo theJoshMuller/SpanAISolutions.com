@@ -4,6 +4,11 @@ test('hero communicates the locked promise', async ({ page }) => {
   await page.goto('/');
 
   await expect(page).toHaveTitle('Span AI Solutions — More closing. Less chasing.');
+  await expect(page.getByRole('link', { name: 'Span AI Solutions' })).toBeVisible();
+  await expect(page.locator('.wordmark__image')).toHaveAttribute(
+    'src',
+    '/brand/logo-white-text.svg'
+  );
   await expect(
     page.getByRole('heading', { name: 'More closing. Less chasing.' })
   ).toBeVisible();
@@ -141,7 +146,7 @@ test('final CTA offers a direct email path with visible fallback text', async ({
   ).toBeVisible();
 });
 
-test('metadata is present and the mobile layout does not overflow', async ({ page }) => {
+test('metadata is present, brand assets resolve, and the mobile layout does not overflow', async ({ page, request }) => {
   await page.goto('/');
 
   await expect(page.locator('meta[name="description"]')).toHaveAttribute(
@@ -156,14 +161,49 @@ test('metadata is present and the mobile layout does not overflow', async ({ pag
 
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     'content',
-    'https://spanaisolutions.com/og-card.svg'
+    'https://spanaisolutions.com/og-image.png'
   );
 
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+    'content',
+    'summary_large_image'
+  );
+
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+    'content',
+    'https://spanaisolutions.com/og-image.png'
+  );
+
+  await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute(
+    'href',
+    '/favicon.svg'
+  );
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+    'href',
+    '/apple-touch-icon.png'
+  );
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/site.webmanifest');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://spanaisolutions.com/'
   );
+
+  for (const asset of [
+    '/brand/logo-white-text.svg',
+    '/brand/icon.svg',
+    '/favicon.svg',
+    '/favicon-16x16.png',
+    '/favicon-32x32.png',
+    '/favicon.ico',
+    '/apple-touch-icon.png',
+    '/android-chrome-192x192.png',
+    '/android-chrome-512x512.png',
+    '/og-image.png',
+    '/site.webmanifest',
+  ]) {
+    const response = await request.get(asset);
+    expect(response.ok(), `${asset} should be available`).toBe(true);
+  }
 
   const hasOverflow = await page.evaluate(() => {
     return document.documentElement.scrollWidth > window.innerWidth;
