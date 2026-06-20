@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = Boolean((globalThis as { process?: { env?: { CI?: string } } }).process?.env?.CI);
+
 export default defineConfig({
   testDir: './tests/e2e',
   use: {
@@ -9,7 +11,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 4321',
     url: 'http://127.0.0.1:4321',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCI,
     timeout: 120_000,
   },
   projects: [
