@@ -1,0 +1,14 @@
+---
+import { audiences } from '../data/site';
+---
+
+<section class="section page-shell" aria-labelledby="audience-title">
+  <h2 id="audience-title" class="section-heading">Who it's for</h2>
+  <ul class="audience-grid">
+    {audiences.map((audience) => (
+      <li class="audience-card">
+        <p>{audience}</p>
+      </li>
+    ))}
+  </ul>
+</section>

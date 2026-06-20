@@ -89,3 +89,29 @@ test('how it works explains the three-step support model', async ({ page }) => {
     await expect(stepIndices.nth(index)).toHaveAttribute('aria-hidden', 'true');
   }
 });
+
+test('human-first positioning is explicit and trust-building', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Human-first by design' })).toBeVisible();
+  await expect(page.getByText(/amplify human closers/i)).toBeVisible();
+});
+
+test('who it is for identifies the four target buyer groups', async ({ page }) => {
+  await page.goto('/');
+
+  const section = page.getByRole('region', { name: "Who it's for" });
+  await expect(section).toBeVisible();
+
+  const audienceList = section.getByRole('list');
+  await expect(audienceList).toBeVisible();
+
+  const audienceItems = audienceList.getByRole('listitem');
+  await expect(audienceItems).toHaveCount(4);
+  await expect(audienceItems).toHaveText([
+    'Founder-led sales teams',
+    'High-ticket service companies',
+    'Agencies with closers and outreach processes',
+    'Businesses that need more sales throughput without more administrative drag',
+  ]);
+});

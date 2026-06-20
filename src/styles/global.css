@@ -277,3 +277,37 @@ button, input, textarea, select { font: inherit; }
     grid-template-columns: 1fr;
   }
 }
+.statement-panel {
+  padding: clamp(24px, 4vw, 40px);
+  border-radius: 32px;
+  border: 1px solid rgba(155, 228, 185, 0.18);
+  background: linear-gradient(180deg, rgba(13, 42, 28, 0.55), rgba(255, 255, 255, 0.03));
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audience-card {
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+
+.audience-card p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .audience-grid {
+    grid-template-columns: 1fr;
+  }
+}
