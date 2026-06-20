@@ -140,3 +140,34 @@ test('final CTA offers a direct email path with visible fallback text', async ({
     finalSection.getByText('Prefer a direct conversation? Reach us at sales@spanaisolutions.com.')
   ).toBeVisible();
 });
+
+test('metadata is present and the mobile layout does not overflow', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    'Human-first AI sales support for every closer — from CRM management and lead research to outreach support and AI voice coverage.'
+  );
+
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+    'content',
+    'https://spanaisolutions.com/'
+  );
+
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    'https://spanaisolutions.com/og-card.svg'
+  );
+
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://spanaisolutions.com/'
+  );
+
+  const hasOverflow = await page.evaluate(() => {
+    return document.documentElement.scrollWidth > window.innerWidth;
+  });
+
+  expect(hasOverflow).toBe(false);
+});
