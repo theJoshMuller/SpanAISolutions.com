@@ -55,3 +55,37 @@ test('operating functions section presents five premium support cards', async ({
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
   }
 });
+
+test('how it works explains the three-step support model', async ({ page }) => {
+  await page.goto('/');
+
+  const section = page.getByRole('region', { name: 'How it works' });
+  await expect(section).toBeVisible();
+  await expect(section.getByRole('heading', { name: 'How it works' })).toBeVisible();
+
+  const orderedTitles = [
+    'Plug into your current sales motion',
+    'Span runs the support layer',
+    'Closers stay in high-value conversations',
+  ];
+
+  const stepList = section.locator('ol');
+  await expect(stepList).toHaveCount(1);
+
+  const stepItems = section.locator('ol > li');
+  await expect(stepItems).toHaveCount(3);
+
+  const stepHeadings = section.locator('ol > li h3');
+  await expect(stepHeadings).toHaveText(orderedTitles);
+
+  for (const title of orderedTitles) {
+    await expect(section.getByRole('heading', { name: title })).toBeVisible();
+  }
+
+  const stepIndices = section.locator('ol > li .step-card__index');
+  await expect(stepIndices).toHaveText(['01', '02', '03']);
+
+  for (let index = 0; index < 3; index += 1) {
+    await expect(stepIndices.nth(index)).toHaveAttribute('aria-hidden', 'true');
+  }
+});

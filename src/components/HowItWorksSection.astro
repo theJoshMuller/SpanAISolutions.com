@@ -1,0 +1,16 @@
+---
+import { processSteps } from '../data/site';
+---
+
+<section class="section page-shell" aria-labelledby="how-it-works-title">
+  <h2 id="how-it-works-title" class="section-heading">How it works</h2>
+  <ol class="steps-grid">
+    {processSteps.map((step, index) => (
+      <li class="step-card">
+        <p class="step-card__index" aria-hidden="true">0{index + 1}</p>
+        <h3>{step.title}</h3>
+        <p>{step.body}</p>
+      </li>
+    ))}
+  </ol>
+</section>

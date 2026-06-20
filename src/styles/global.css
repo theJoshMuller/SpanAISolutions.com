@@ -236,3 +236,44 @@ button, input, textarea, select { font: inherit; }
     grid-template-columns: 1fr;
   }
 }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step-card {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.step-card__index {
+  margin: 0 0 14px;
+  color: var(--accent-soft);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+
+.step-card h3 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
+
+.step-card p:last-child {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+@media (max-width: 960px) {
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
