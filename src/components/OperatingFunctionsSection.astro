@@ -1,0 +1,19 @@
+---
+import { operatingFunctions } from '../data/site';
+---
+
+<section class="section page-shell" aria-labelledby="operating-functions-title">
+  <h2 id="operating-functions-title" class="section-heading">What Span actually does</h2>
+  <p class="section-copy">
+    Span operates behind the closer — keeping the pipeline clean, surfacing the right leads, and running the support motion that keeps revenue work moving.
+  </p>
+
+  <div class="card-grid card-grid--three-up">
+    {operatingFunctions.map((card) => (
+      <article class="feature-card">
+        <h3>{card.title}</h3>
+        <p>{card.body}</p>
+      </article>
+    ))}
+  </div>
+</section>

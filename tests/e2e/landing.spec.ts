@@ -37,3 +37,21 @@ test('support strip lists the six closer-support capabilities', async ({ page })
     await expect(strip.getByText(item, { exact: true })).toBeVisible();
   }
 });
+
+test('operating functions section presents five premium support cards', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(
+    page.getByRole('heading', { name: 'What Span actually does' })
+  ).toBeVisible();
+
+  for (const title of [
+    'Keep the pipeline clean',
+    'Research the right leads',
+    'Run outbound support',
+    'Cover the front door',
+    'Coordinate the support layer',
+  ]) {
+    await expect(page.getByRole('heading', { name: title })).toBeVisible();
+  }
+});
