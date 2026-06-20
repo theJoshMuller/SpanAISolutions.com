@@ -1,0 +1,10 @@
+---
+import { supportItems } from '../data/site';
+---
+
+<section class="section page-shell" aria-labelledby="closer-support-title">
+  <h2 id="closer-support-title" class="sr-only">Closer support coverage</h2>
+  <ul class="capability-strip" role="list">
+    {supportItems.map((item) => <li class="capability-pill">{item}</li>)}
+  </ul>
+</section>

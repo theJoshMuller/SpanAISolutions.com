@@ -20,3 +20,20 @@ test('hero communicates the locked promise', async ({ page }) => {
   const heroCta = hero.getByRole('link', { name: 'Email sales' });
   await expect(heroCta).toHaveAttribute('href', 'mailto:sales@spanaisolutions.com');
 });
+
+test('support strip lists the six closer-support capabilities', async ({ page }) => {
+  await page.goto('/');
+
+  const strip = page.getByRole('region', { name: 'Closer support coverage' });
+
+  for (const item of [
+    'CRM Management',
+    'SDR Support',
+    'Lead Research',
+    'Cold Outreach',
+    'AI Voice Receptionist',
+    'AI Voice Cold Caller',
+  ]) {
+    await expect(strip.getByText(item, { exact: true })).toBeVisible();
+  }
+});
