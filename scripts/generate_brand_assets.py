@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
+import json
 import shutil
 import subprocess
 import tempfile
-import json
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 LOGOS = ROOT / 'logos'
@@ -21,7 +22,45 @@ shutil.copy2(ICON_SVG, BRAND / 'icon.svg')
 shutil.copy2(WORDMARK_SVG, BRAND / 'logo-white-text.svg')
 shutil.copy2(ICON_SVG, PUBLIC / 'favicon.svg')
 
-sizes = {
+
+def render_svg(svg_path: Path, max_width: int, max_height: int) -> Image.Image:
+    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+
+    try:
+        subprocess.run(
+            [
+                'rsvg-convert',
+                '-f',
+                'png',
+                '-w',
+                str(max_width),
+                '-h',
+                str(max_height),
+                '-a',
+                '-b',
+                'none',
+                '-o',
+                str(tmp_path),
+                str(svg_path),
+            ],
+            check=True,
+        )
+        return Image.open(tmp_path).convert('RGBA').copy()
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
+def render_square_icon(svg_path: Path, size: int) -> Image.Image:
+    rendered = render_svg(svg_path, size, size)
+    canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    x = (size - rendered.width) // 2
+    y = (size - rendered.height) // 2
+    canvas.alpha_composite(rendered, (x, y))
+    return canvas
+
+
+png_sizes = {
     'favicon-16x16.png': 16,
     'favicon-32x32.png': 32,
     'favicon-48x48.png': 48,
@@ -30,72 +69,28 @@ sizes = {
     'android-chrome-512x512.png': 512,
 }
 
-for filename, size in sizes.items():
-    subprocess.run(
-        [
-            'rsvg-convert',
-            '-f',
-            'png',
-            '-w',
-            str(size),
-            '-h',
-            str(size),
-            '-a',
-            '-b',
-            'none',
-            '-o',
-            str(PUBLIC / filename),
-            str(ICON_SVG),
-        ],
-        check=True,
-    )
+for filename, size in png_sizes.items():
+    render_square_icon(ICON_SVG, size).save(PUBLIC / filename)
 
-subprocess.run(
-    [
-        'magick',
-        str(PUBLIC / 'favicon-16x16.png'),
-        str(PUBLIC / 'favicon-32x32.png'),
-        str(PUBLIC / 'favicon-48x48.png'),
-        str(PUBLIC / 'favicon.ico'),
-    ],
-    check=True,
+render_square_icon(ICON_SVG, 256).save(
+    PUBLIC / 'favicon.ico',
+    format='ICO',
+    sizes=[(16, 16), (32, 32), (48, 48)],
 )
 
-with tempfile.TemporaryDirectory() as tmpdir:
-    tmp_icon = Path(tmpdir) / 'og-icon.png'
-    subprocess.run(
-        [
-            'rsvg-convert',
-            '-f',
-            'png',
-            '-w',
-            '420',
-            '-h',
-            '420',
-            '-a',
-            '-b',
-            'none',
-            '-o',
-            str(tmp_icon),
-            str(ICON_SVG),
-        ],
-        check=True,
-    )
+canvas = Image.new('RGBA', (1200, 630), (0, 0, 0, 0))
+glow = Image.new('RGBA', canvas.size, (0, 0, 0, 0))
+draw = ImageDraw.Draw(glow)
+draw.ellipse((330, 45, 870, 585), fill=(144, 195, 107, 56))
+draw.ellipse((380, 95, 820, 535), fill=(255, 255, 255, 34))
+glow = glow.filter(ImageFilter.GaussianBlur(48))
+canvas.alpha_composite(glow)
 
-    canvas = Image.new('RGBA', (1200, 630), (0, 0, 0, 0))
-
-    glow = Image.new('RGBA', canvas.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(glow)
-    draw.ellipse((330, 45, 870, 585), fill=(144, 195, 107, 56))
-    draw.ellipse((380, 95, 820, 535), fill=(255, 255, 255, 34))
-    glow = glow.filter(ImageFilter.GaussianBlur(48))
-    canvas.alpha_composite(glow)
-
-    icon = Image.open(tmp_icon).convert('RGBA')
-    x = (canvas.width - icon.width) // 2
-    y = (canvas.height - icon.height) // 2
-    canvas.alpha_composite(icon, (x, y))
-    canvas.save(PUBLIC / 'og-image.png')
+icon = render_svg(ICON_SVG, 520, 520)
+x = (canvas.width - icon.width) // 2
+y = (canvas.height - icon.height) // 2
+canvas.alpha_composite(icon, (x, y))
+canvas.save(PUBLIC / 'og-image.png')
 
 manifest = {
     'name': 'Span AI Solutions',
@@ -104,17 +99,17 @@ manifest = {
         {
             'src': '/android-chrome-192x192.png',
             'sizes': '192x192',
-            'type': 'image/png'
+            'type': 'image/png',
         },
         {
             'src': '/android-chrome-512x512.png',
             'sizes': '512x512',
-            'type': 'image/png'
-        }
+            'type': 'image/png',
+        },
     ],
     'theme_color': '#040806',
     'background_color': '#040806',
-    'display': 'standalone'
+    'display': 'standalone',
 }
 (PUBLIC / 'site.webmanifest').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
 print('Generated brand assets in public/.')

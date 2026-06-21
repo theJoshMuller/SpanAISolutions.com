@@ -176,13 +176,16 @@ test('metadata is present, brand assets resolve, and the mobile layout does not 
 
   await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute(
     'href',
-    '/favicon.svg'
+    /\/favicon\.svg\?v=20260620d$/
   );
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
     'href',
-    '/apple-touch-icon.png'
+    /\/apple-touch-icon\.png\?v=20260620d$/
   );
-  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/site.webmanifest');
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
+    'href',
+    /\/site\.webmanifest\?v=20260620d$/
+  );
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://spanaisolutions.com/'

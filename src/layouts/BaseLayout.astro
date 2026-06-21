@@ -15,6 +15,8 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).toString(
 const ogImage = Astro.site
   ? new URL('/og-image.png', Astro.site).toString()
   : new URL('/og-image.png', Astro.url).toString();
+const brandAssetVersion = '20260620d';
+const withVersion = (path: string) => `${path}?v=${brandAssetVersion}`;
 ---
 
 <html lang="en">
@@ -39,12 +41,13 @@ const ogImage = Astro.site
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:image:alt" content="Span AI Solutions icon" />
     <link rel="canonical" href={canonical} />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
-    <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href={withVersion('/site.webmanifest')} />
+    <link rel="icon" href={withVersion('/favicon.svg')} sizes="any" type="image/svg+xml" />
+    <link rel="icon" href={withVersion('/favicon-32x32.png')} sizes="32x32" type="image/png" />
+    <link rel="icon" href={withVersion('/favicon-16x16.png')} sizes="16x16" type="image/png" />
+    <link rel="icon" href={withVersion('/favicon.ico')} sizes="48x48" type="image/x-icon" />
+    <link rel="shortcut icon" href={withVersion('/favicon.ico')} type="image/x-icon" />
+    <link rel="apple-touch-icon" href={withVersion('/apple-touch-icon.png')} sizes="180x180" />
     <title>{title}</title>
   </head>
   <body>
