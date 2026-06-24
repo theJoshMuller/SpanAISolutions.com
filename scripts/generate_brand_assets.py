@@ -15,12 +15,14 @@ BRAND = PUBLIC / 'brand'
 
 ICON_SVG = LOGOS / 'icon.svg'
 BLACK_WORDMARK_SVG = LOGOS / 'logo-black-text.svg'
+EMAIL_SIGNATURE_SVG = LOGOS / 'logo-email-sig.svg'
 WORDMARK_SVG = LOGOS / 'logo-white-text.svg'
 
 BRAND.mkdir(parents=True, exist_ok=True)
 
 shutil.copy2(ICON_SVG, BRAND / 'icon.svg')
 shutil.copy2(BLACK_WORDMARK_SVG, BRAND / 'logo-black-text.svg')
+shutil.copy2(EMAIL_SIGNATURE_SVG, BRAND / 'logo-email-sig.svg')
 shutil.copy2(WORDMARK_SVG, BRAND / 'logo-white-text.svg')
 shutil.copy2(ICON_SVG, PUBLIC / 'favicon.svg')
 
