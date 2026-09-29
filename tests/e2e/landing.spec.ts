@@ -30,6 +30,25 @@ test('homepage presents the new offer and service navigation', async ({ page }) 
   expect((await page.locator('main').innerText()).toLowerCase()).not.toMatch(/closer|chasing|sdr|crm hygiene/);
 });
 
+test('brand typography matches the existing site at desktop and mobile sizes', async ({ page }) => {
+  for (const [width, heroSize, sectionSize] of [[1280, '108px', '51.2px'], [375, '52px', '32px']] as const) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const styles = await page.evaluate(() => {
+      const body = getComputedStyle(document.body);
+      const hero = getComputedStyle(document.querySelector('.hero-title')!);
+      const section = getComputedStyle(document.querySelector('.section-heading')!);
+      return { body: body.fontFamily, hero: hero.fontFamily, heroSize: hero.fontSize, heroLine: hero.lineHeight, section: section.fontFamily, sectionSize: section.fontSize };
+    });
+    expect(styles.body).toContain('Inter Variable');
+    expect(styles.hero).toContain('Space Grotesk');
+    expect(styles.section).toContain('Space Grotesk');
+    expect(styles.heroSize).toBe(heroSize);
+    expect(styles.heroLine).toBe(width === 1280 ? '99.36px' : '47.84px');
+    expect(styles.sectionSize).toBe(sectionSize);
+  }
+});
+
 test('mobile menu opens and routes to the services', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
