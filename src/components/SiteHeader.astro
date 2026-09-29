@@ -1,17 +1,23 @@
 ---
-import { siteMeta } from '../data/site';
+const nav = [
+  ['Custom AI Solutions', '/custom-ai-solutions'],
+  ['AI Consulting', '/ai-consulting'],
+  ['AI Voice Agents', '/ai-voice-agents'],
+  ['About', '/about'],
+] as const;
+const current = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
-
 <header class="site-header page-shell">
-  <a class="wordmark" href="/">
-    <img
-      class="wordmark__image"
-      src="/brand/logo-white-text.svg"
-      alt="Span AI Solutions"
-      width="484"
-      height="52"
-      decoding="async"
-    />
-  </a>
-  <a class="button button--ghost" href={`mailto:${siteMeta.contactEmail}`}>Email sales</a>
+  <a class="wordmark" href="/" aria-label="Span AI Solutions home"><img class="wordmark__image" src="/brand/logo-white-text.svg" alt="Span AI Solutions" width="484" height="52" /></a>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    {nav.map(([label, href]) => <a href={href} aria-current={current === href ? 'page' : undefined}>{label}</a>)}
+    <a class="button button--primary nav-cta" href="/contact" aria-current={current === '/contact' ? 'page' : undefined}>Contact Us</a>
+  </nav>
+  <details class="mobile-nav">
+    <summary>Menu</summary>
+    <nav aria-label="Mobile navigation">
+      {nav.map(([label, href]) => <a href={href} aria-current={current === href ? 'page' : undefined}>{label}</a>)}
+      <a href="/contact" aria-current={current === '/contact' ? 'page' : undefined}>Contact Us</a>
+    </nav>
+  </details>
 </header>

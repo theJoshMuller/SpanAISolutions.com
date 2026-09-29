@@ -2,6 +2,8 @@
 .netlify/
 node_modules/
 dist/
+test-results/
+docs/review/*.pdf
 .astro/
 .env
 .DS_Store

@@ -4,6 +4,8 @@ import '@fontsource/space-grotesk/400.css';
 import '@fontsource/space-grotesk/500.css';
 import '@fontsource/space-grotesk/700.css';
 import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
   title: string;
@@ -17,6 +19,8 @@ const ogImage = Astro.site
   : new URL('/og-image.png', Astro.url).toString();
 const brandAssetVersion = '20260620d';
 const withVersion = (path: string) => `${path}?v=${brandAssetVersion}`;
+// Launch remains gated until copy, permissions, privacy and form delivery are approved.
+const launchReady = import.meta.env.PUBLIC_SPAN_LAUNCH_READY === 'true';
 ---
 
 <html lang="en">
@@ -24,6 +28,7 @@ const withVersion = (path: string) => `${path}?v=${brandAssetVersion}`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {!launchReady && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content="#040806" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -51,6 +56,8 @@ const withVersion = (path: string) => `${path}?v=${brandAssetVersion}`;
     <title>{title}</title>
   </head>
   <body>
+    <SiteHeader />
     <slot />
+    <SiteFooter />
   </body>
 </html>

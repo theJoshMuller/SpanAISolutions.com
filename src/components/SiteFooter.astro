@@ -1,0 +1,23 @@
+---
+const links = [
+  ['Home', '/'], ['Custom AI Solutions', '/custom-ai-solutions'],
+  ['AI Consulting', '/ai-consulting'], ['AI Voice Agents', '/ai-voice-agents'],
+  ['About', '/about'], ['Contact Us', '/contact'],
+  ['Privacy Policy', '/privacy'], ['Terms', '/terms'],
+] as const;
+---
+<footer class="site-footer">
+  <div class="page-shell footer-grid">
+    <div>
+      <a href="/" aria-label="Span AI Solutions home"><img class="footer-logo" src="/brand/logo-white-text.svg" width="484" height="52" alt="Span AI Solutions" /></a>
+      <p>Bridging you and your goals, using AI.</p>
+    </div>
+    <nav aria-label="Footer navigation">{links.map(([label, href]) => <a href={href}>{label}</a>)}</nav>
+    <address>
+      <a href="mailto:sales@spanaisolutions.com">sales@spanaisolutions.com</a>
+      <a href="tel:+16393823319">+1 (639) 382-3319</a>
+      <span>Regina, Saskatchewan, Canada</span>
+    </address>
+  </div>
+  <p class="page-shell copyright">© 2026 Span AI Solutions.</p>
+</footer>

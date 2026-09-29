@@ -1,216 +1,82 @@
 import { test, expect } from '@playwright/test';
 
-test('hero communicates the locked promise', async ({ page }) => {
-  await page.goto('/');
+const routes = [
+  '/', '/custom-ai-solutions', '/ai-consulting', '/ai-voice-agents',
+  '/about', '/contact', '/privacy', '/terms',
+];
 
-  await expect(page).toHaveTitle('Span AI Solutions — More closing. Less chasing.');
-  await expect(page.getByRole('link', { name: 'Span AI Solutions' })).toBeVisible();
-  await expect(page.locator('.wordmark__image')).toHaveAttribute(
-    'src',
-    '/brand/logo-white-text.svg'
-  );
-  await expect(
-    page.getByRole('heading', { name: 'More closing. Less chasing.' })
-  ).toBeVisible();
-  await expect(
-    page.getByText('An agentic sales support team for every closer.', { exact: true })
-  ).toBeVisible();
-
-  const main = page.getByRole('main');
-  await expect(main).toBeVisible();
-
-  const hero = page.getByRole('region', { name: 'More closing. Less chasing.' });
-  await expect(hero).toBeVisible();
-
-  const heroCta = hero.getByRole('link', { name: 'Email sales' });
-  await expect(heroCta).toHaveAttribute('href', 'mailto:sales@spanaisolutions.com');
-});
-
-test('support strip lists the six closer-support capabilities', async ({ page }) => {
-  await page.goto('/');
-
-  const strip = page.getByRole('region', { name: 'Closer support coverage' });
-
-  for (const item of [
-    'CRM Management',
-    'SDR Support',
-    'Lead Research',
-    'Cold Outreach',
-    'AI Voice Receptionist',
-    'AI Voice Cold Caller',
-  ]) {
-    await expect(strip.getByText(item, { exact: true })).toBeVisible();
-  }
-});
-
-test('operating functions section presents five premium support cards', async ({ page }) => {
-  await page.goto('/');
-
-  await expect(
-    page.getByRole('heading', { name: 'What Span actually does' })
-  ).toBeVisible();
-
-  for (const title of [
-    'Keep the pipeline clean',
-    'Research the right leads',
-    'Run outbound support',
-    'Cover the front door',
-    'Coordinate the support layer',
-  ]) {
-    await expect(page.getByRole('heading', { name: title })).toBeVisible();
-  }
-});
-
-test('how it works explains the three-step support model', async ({ page }) => {
-  await page.goto('/');
-
-  const section = page.getByRole('region', { name: 'How it works' });
-  await expect(section).toBeVisible();
-  await expect(section.getByRole('heading', { name: 'How it works' })).toBeVisible();
-
-  const orderedTitles = [
-    'Plug into your current sales motion',
-    'Span runs the support layer',
-    'Closers stay in high-value conversations',
-  ];
-
-  const stepList = section.locator('ol');
-  await expect(stepList).toHaveCount(1);
-
-  const stepItems = section.locator('ol > li');
-  await expect(stepItems).toHaveCount(3);
-
-  const stepHeadings = section.locator('ol > li h3');
-  await expect(stepHeadings).toHaveText(orderedTitles);
-
-  for (const title of orderedTitles) {
-    await expect(section.getByRole('heading', { name: title })).toBeVisible();
-  }
-
-  const stepIndices = section.locator('ol > li .step-card__index');
-  await expect(stepIndices).toHaveText(['01', '02', '03']);
-
-  for (let index = 0; index < 3; index += 1) {
-    await expect(stepIndices.nth(index)).toHaveAttribute('aria-hidden', 'true');
-  }
-});
-
-test('human-first positioning is explicit and trust-building', async ({ page }) => {
-  await page.goto('/');
-
-  await expect(page.getByRole('heading', { name: 'Human-first by design' })).toBeVisible();
-  await expect(page.getByText(/amplify human closers/i)).toBeVisible();
-});
-
-test('who it is for identifies the four target buyer groups', async ({ page }) => {
-  await page.goto('/');
-
-  const section = page.getByRole('region', { name: "Who it's for" });
-  await expect(section).toBeVisible();
-
-  const audienceList = section.getByRole('list');
-  await expect(audienceList).toBeVisible();
-
-  const audienceItems = audienceList.getByRole('listitem');
-  await expect(audienceItems).toHaveCount(4);
-  await expect(audienceItems).toHaveText([
-    'Founder-led sales teams',
-    'High-ticket service companies',
-    'Agencies with closers and outreach processes',
-    'Businesses that need more sales throughput without more administrative drag',
-  ]);
-});
-
-test('final CTA offers a direct email path with visible fallback text', async ({ page }) => {
-  await page.goto('/');
-
-  await expect(
-    page.getByRole('heading', { name: 'Ready for more closing and less chasing?' })
-  ).toBeVisible();
-
-  const regions = page.getByRole('region', {
-    name: 'Ready for more closing and less chasing?',
+for (const route of routes) {
+  test(`${route} renders its own title/H1, shared footer, and fits 375px`, async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(route);
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'sales@spanaisolutions.com' })).toHaveAttribute('href', 'mailto:sales@spanaisolutions.com');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} has no horizontal overflow`).toBe(true);
+    expect(await page.title()).toContain('Span AI Solutions');
   });
-  await expect(regions).toHaveCount(1);
+}
 
-  const finalSection = regions.first();
-  await expect(
-    finalSection.getByRole('heading', { name: 'Ready for more closing and less chasing?' })
-  ).toBeVisible();
-  await expect(finalSection.getByRole('link', { name: 'Email sales' })).toHaveAttribute(
-    'href',
-    'mailto:sales@spanaisolutions.com'
-  );
-  await expect(
-    finalSection.getByText('Prefer a direct conversation? Reach us at sales@spanaisolutions.com.')
-  ).toBeVisible();
+test('homepage presents the new offer and service navigation', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('h1')).toHaveText('Bridging the gap between you and your goals.');
+  await expect(page.locator('#services')).toBeVisible();
+  await expect(page.locator('main').getByRole('link', { name: 'Start a conversation' }).first()).toHaveAttribute('href', '/contact');
+  for (const route of ['/custom-ai-solutions', '/ai-consulting', '/ai-voice-agents']) {
+    await expect(page.locator('main').locator(`a[href="${route}"]`).first()).toBeVisible();
+  }
+  await expect(page.getByText('As featured in El Espectador.')).toBeVisible();
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://spanaisolutions.com/og-image.png');
+  expect((await page.locator('main').innerText()).toLowerCase()).not.toMatch(/closer|chasing|sdr|crm hygiene/);
 });
 
-test('metadata is present, brand assets resolve, and the mobile layout does not overflow', async ({ page, request }) => {
+test('mobile menu opens and routes to the services', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
+  await page.locator('.mobile-nav summary').click();
+  const nav = page.getByRole('navigation', { name: 'Mobile navigation' });
+  await expect(nav).toBeVisible();
+  await nav.getByRole('link', { name: 'AI Voice Agents' }).click();
+  await expect(page).toHaveURL(/\/ai-voice-agents\/?$/);
+});
 
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-    'content',
-    'Human-first AI sales support for every closer — from CRM management and lead research to outreach support and AI voice coverage.'
-  );
-
-  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
-    'content',
-    'https://spanaisolutions.com/'
-  );
-
-  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
-    'content',
-    'https://spanaisolutions.com/og-image.png'
-  );
-
-  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
-    'content',
-    'summary_large_image'
-  );
-
-  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
-    'content',
-    'https://spanaisolutions.com/og-image.png'
-  );
-
-  await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute(
-    'href',
-    /\/favicon\.svg\?v=20260620d$/
-  );
-  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
-    'href',
-    /\/apple-touch-icon\.png\?v=20260620d$/
-  );
-  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
-    'href',
-    /\/site\.webmanifest\?v=20260620d$/
-  );
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
-    'href',
-    'https://spanaisolutions.com/'
-  );
-
-  for (const asset of [
-    '/brand/logo-white-text.svg',
-    '/brand/icon.svg',
-    '/favicon.svg',
-    '/favicon-16x16.png',
-    '/favicon-32x32.png',
-    '/favicon.ico',
-    '/apple-touch-icon.png',
-    '/android-chrome-192x192.png',
-    '/android-chrome-512x512.png',
-    '/og-image.png',
-    '/site.webmanifest',
-  ]) {
-    const response = await request.get(asset);
-    expect(response.ok(), `${asset} should be available`).toBe(true);
-  }
-
-  const hasOverflow = await page.evaluate(() => {
-    return document.documentElement.scrollWidth > window.innerWidth;
+for (const [service, title] of [
+  ['custom', 'Custom AI solution'],
+  ['consulting', 'AI consulting'],
+  ['voice', 'AI voice agent'],
+] as const) {
+  test(`contact preselects ${service} from URL`, async ({ page }) => {
+    await page.goto(`/contact?service=${service}`);
+    await expect(page.locator('#service')).toHaveValue(service);
+    await expect(page.locator('#consulting-fields')).toBeVisible({ visible: service === 'consulting' });
+    await expect(page.locator('#voice-fields')).toBeVisible({ visible: service === 'voice' });
+    await expect(page.getByRole('option', { name: title })).toHaveAttribute('value', service);
   });
+}
 
-  expect(hasOverflow).toBe(false);
+test('consulting conditional fields change with session type', async ({ page }) => {
+  await page.goto('/contact?service=consulting');
+  await page.locator('#session-type').selectOption({ label: 'Group' });
+  await expect(page.locator('.group-size')).toBeVisible();
+  await expect(page.locator('.session-format')).toBeVisible();
+  await expect(page.locator('.speaking-fields')).toBeHidden();
+  await page.locator('#session-type').selectOption({ label: 'Speaking engagement' });
+  await expect(page.locator('.speaking-fields')).toBeVisible();
+  await expect(page.locator('.group-size')).toBeHidden();
+  await expect(page.locator('input[name="group_size"]')).toBeDisabled();
+  await expect(page.locator('input[name="event_name"]')).toBeEnabled();
+});
+
+test('preview form cannot submit without delivery and spam protection', async ({ page }) => {
+  await page.goto('/contact');
+  await expect(page.getByRole('button', { name: 'Send message' })).toBeDisabled();
+  await expect(page.locator('input[name="updates_opt_in"]')).not.toBeChecked();
+  await expect(page.locator('a[href="tel:+16393823319"]').first()).toBeVisible();
+  await expect(page.getByText('No information entered here is sent or saved.', { exact: false })).toBeVisible();
+});
+
+test('brand images resolve', async ({ request }) => {
+  for (const asset of ['/brand/logo-white-text.svg','/favicon.svg','/favicon-32x32.png','/og-image.png']) {
+    expect((await request.get(asset)).ok(), asset).toBe(true);
+  }
 });
