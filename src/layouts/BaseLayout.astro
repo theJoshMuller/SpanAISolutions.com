@@ -19,7 +19,7 @@ const ogImage = Astro.site
   : new URL('/og-image.png', Astro.url).toString();
 const brandAssetVersion = '20260620d';
 const withVersion = (path: string) => `${path}?v=${brandAssetVersion}`;
-// Launch remains gated until copy, permissions, privacy and form delivery are approved.
+// Production launch approved; non-production previews remain non-indexable.
 const launchReady = import.meta.env.PUBLIC_SPAN_LAUNCH_READY === 'true';
 ---
 
