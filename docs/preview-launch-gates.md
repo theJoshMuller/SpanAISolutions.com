@@ -5,20 +5,27 @@ Source: Kamila's `Span AI Solutions — Website Rebuild Instructions.docx` (Sep 
 ## Review scope
 
 - Six main routes and two legal placeholders, preserving the existing Span logo and dark/green palette.
-- Source-quoted copy is in the page files for review only; other claims still require verification. Kamila confirmed that the supplied testimonials may be used.
-- Contact form is intentionally **non-submitting** in preview. No message is sent, no opt-in is recorded, and no synthetic success screen is shown.
+- Kamila approved the supplied public copy and offers and stated that Josh also approves. Testimonial use is confirmed. Final assembled-page approval remains pending after the email-only and photo changes.
+- Email-only launch approved: the intake form and updates opt-in are removed. Contact links open an email to `sales@spanaisolutions.com`, preserving the service in the subject where applicable. No website form submission or enrolment occurs.
 - The draft uses `<meta name="robots" content="noindex, nofollow">` by default. Only set `PUBLIC_SPAN_LAUNCH_READY=true` after completing every launch gate, and verify a production-equivalent build.
-- Footer copyright omits the unresolved legal entity rather than inventing wording. Headshot slots remain placeholders.
+- Footer wording awaits final-version approval. Kamila confirmed corporation identifier `102237577`; the previously verified registration record identifies `102237577 Saskatchewan Inc.`. All three supplied photos are included in the local review: Josh on About and AI Consulting, Kamila's edited portrait and the edited joint photo on About.
 
 ## Required before public launch
 
-- Obtain final approval of the exact public page copy, metadata, testimonial quotations, attributions, links, and social card from the website owners. Verify claims against sources, especially press/article attribution, the translated press quote, experience and expert-network claims, Waha naming, and the AI voice-agent features/disclosure promise.
-- Testimonial use is confirmed by Kamila for the quotations and attributions supplied in the source DOCX. This does not approve headshots or unverified LinkedIn links: obtain founder headshots and their usage approval separately, and confirm each testimonial subject's LinkedIn profile URL before adding a link. The El Espectador backup URL is documented in the source DOCX and should only replace the article link if that link moves.
-- Confirm the legal entity line with the accountant.
-- Supply approved answers to the custom AI data-safety/timeframe and voice agent calendar/compliance FAQs; do not invent answers.
-- Obtain Termly Privacy Policy and Terms; the coming-soon pages are not substitutes for legal terms for form intake, SMS outreach, or client voice-agent launches.
-- Implement real form delivery to `sales@spanaisolutions.com` with server-side validation, secret-verified Cloudflare Turnstile, honeypot, every conditional field, and consent handled separately from inquiry. Obtain site/secret keys via a secure channel, never commit secrets. Do not enable submitting until real messages for each service are received/read back, and verify no SMS enrolment.
-- Confirm the phone number and `tel:+16393823319` destination; source instructions include a deliberately masked `tel:+163****3319` while displaying the full number.
+- Obtain approval of the final assembled public version, including the email-only contact page, photos, metadata, links and social card. Independently verify source-backed claims and link destinations; owner approval is not independent verification.
+- Testimonial use is confirmed for the supplied quotations and attributions. Testimonial photos and LinkedIn links remain optional and are omitted unless separately approved and verified. All founder photos are supplied and included. Originals and editing material are gitignored under `assets/source-photos/` (directory 0700, files 0600); only metadata-free WebP derivatives are public assets.
+- Kamila confirmed that Span AI Solutions is registered under their corporation identified as `102237577`. The previously verified ISC registration record identifies the full company as `102237577 Saskatchewan Inc.`. Proposed footer for final-version review: “Span AI Solutions is a trade name of 102237577 Saskatchewan Inc.”
+- Kamila approved omitting unanswered FAQs for launch. Do not invent data-safety, supported-calendar or compliance answers; generic answered FAQs can remain.
+- Kamila deferred the full form and final privacy policy. Privacy/Terms remain the source-requested update notices; they are not final policies. Before adding intake, SMS outreach or launching client voice agents, obtain and review appropriate final policies.
+- Full-form follow-up only: implement server-validated delivery, Turnstile, honeypot, conditional fields and separate consent, then verify received messages. No SMS enrolment. This is not a blocker for the approved email-only launch.
+- Kamila confirmed phone `16393823319`; contact and footer use `tel:+16393823319`, displayed as `+1 (639) 382-3319`.
+
+## Photo review evidence
+
+- `public/images/josh-muller.webp`: unchanged selected portrait crop, 640×480.
+- `public/images/kamila-buitrago.webp`: 640×480, diploma excluded by crop; university branding and graduation background replaced with deep green/charcoal via the approved external API. Side-by-side visual review found no material identity, pose, clothing or jewelry change.
+- `public/images/span-founders.webp`: 768×1152; diploma and medal/case removed via the approved external API. The original top 711 rows were restored verbatim before resize/export, preserving both original faces; the lower edit is blended over rows 711–750. Visual review found no seam, residual objects or material hand defects.
+- Both delivered WebPs decode successfully and have explicit dimensions, meaningful alt text, lazy loading and responsive sizing. Final rendered desktop/mobile and owner review are still required before production deployment.
 - Confirm Netlify account/site destination before deployment; verify the exact production URL, assets, mobile menu, SEO/OG tags, forms, and rollback commit after publication.
 
 ## Local review

@@ -59,39 +59,49 @@ test('mobile menu opens and routes to the services', async ({ page }) => {
   await expect(page).toHaveURL(/\/ai-voice-agents\/?$/);
 });
 
-for (const [service, title] of [
-  ['custom', 'Custom AI solution'],
-  ['consulting', 'AI consulting'],
-  ['voice', 'AI voice agent'],
+for (const [service, subject] of [
+  ['custom', 'Custom AI solution enquiry'],
+  ['consulting', 'AI consulting enquiry'],
+  ['voice', 'AI voice agent enquiry'],
 ] as const) {
-  test(`contact preselects ${service} from URL`, async ({ page }) => {
+  test(`email enquiry preserves ${service} context`, async ({ page }) => {
     await page.goto(`/contact?service=${service}`);
-    await expect(page.locator('#service')).toHaveValue(service);
-    await expect(page.locator('#consulting-fields')).toBeVisible({ visible: service === 'consulting' });
-    await expect(page.locator('#voice-fields')).toBeVisible({ visible: service === 'voice' });
-    await expect(page.getByRole('option', { name: title })).toHaveAttribute('value', service);
+    await expect(page.getByRole('link', { name: 'Email us', exact: true })).toHaveAttribute('href', `mailto:sales@spanaisolutions.com?subject=${encodeURIComponent(subject)}`);
   });
 }
 
-test('consulting conditional fields change with session type', async ({ page }) => {
-  await page.goto('/contact?service=consulting');
-  await page.locator('#session-type').selectOption({ label: 'Group' });
-  await expect(page.locator('.group-size')).toBeVisible();
-  await expect(page.locator('.session-format')).toBeVisible();
-  await expect(page.locator('.speaking-fields')).toBeHidden();
-  await page.locator('#session-type').selectOption({ label: 'Speaking engagement' });
-  await expect(page.locator('.speaking-fields')).toBeVisible();
-  await expect(page.locator('.group-size')).toBeHidden();
-  await expect(page.locator('input[name="group_size"]')).toBeDisabled();
-  await expect(page.locator('input[name="event_name"]')).toBeEnabled();
+test('email-only contact has no intake form and uses the confirmed phone number', async ({ page }) => {
+  for (const query of ['', '?service=unknown', '?service=__proto__']) {
+    await page.goto(`/contact${query}`);
+    await expect(page.getByRole('link', { name: 'Email us', exact: true })).toHaveAttribute('href', 'mailto:sales@spanaisolutions.com');
+    await expect(page.locator('form, input, textarea, select')).toHaveCount(0);
+    await expect(page.locator('main a[href="tel:+16393823319"]')).toHaveText('+1 (639) 382-3319');
+    await expect(page.locator('footer a[href="tel:+16393823319"]')).toHaveText('+1 (639) 382-3319');
+  }
 });
 
-test('preview form cannot submit without delivery and spam protection', async ({ page }) => {
-  await page.goto('/contact');
-  await expect(page.getByRole('button', { name: 'Send message' })).toBeDisabled();
-  await expect(page.locator('input[name="updates_opt_in"]')).not.toBeChecked();
-  await expect(page.locator('a[href="tel:+16393823319"]').first()).toBeVisible();
-  await expect(page.getByText('No information entered here is sent or saved.', { exact: false })).toBeVisible();
+test('Josh portrait is rendered on About and AI Consulting', async ({ page }) => {
+  for (const route of ['/about', '/ai-consulting']) {
+    await page.goto(route);
+    const photo = page.getByRole('img', { name: 'Josh Muller', exact: true });
+    await expect(photo).toHaveAttribute('src', '/images/josh-muller.webp');
+    await photo.scrollIntoViewIfNeeded();
+    expect(await photo.evaluate(async (node: HTMLImageElement) => { await node.decode(); return [node.naturalWidth, node.naturalHeight]; })).toEqual([640, 480]);
+  }
+});
+
+test('edited Kamila and joint founder photos render without placeholders', async ({ page }) => {
+  await page.goto('/about');
+  for (const [name, src, width, height] of [
+    ['Kamila Buitrago', '/images/kamila-buitrago.webp', 640, 480],
+    ['Span AI Solutions founders Josh Muller and Kamila Buitrago together', '/images/span-founders.webp', 768, 1152],
+  ] as const) {
+    const photo = page.getByRole('img', { name, exact: true });
+    await expect(photo).toHaveAttribute('src', src);
+    await photo.scrollIntoViewIfNeeded();
+    expect(await photo.evaluate(async (node: HTMLImageElement) => { await node.decode(); return [node.naturalWidth, node.naturalHeight]; })).toEqual([width, height]);
+  }
+  await expect(page.locator('.portrait-placeholder')).toHaveCount(0);
 });
 
 test('brand images resolve', async ({ request }) => {

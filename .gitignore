@@ -4,6 +4,9 @@ node_modules/
 dist/
 test-results/
 docs/review/*.pdf
+docs/review/*.png
+docs/review/.pdf-parts/
+assets/source-photos/
 .astro/
 .env
 .DS_Store

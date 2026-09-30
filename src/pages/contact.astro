@@ -11,51 +11,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <section class="section page-shell contact-grid">
       <div class="card">
         <h2 class="section-heading">Send an enquiry</h2>
-        <p class="preview-notice" role="status">This is a private review draft. Form delivery and spam protection are not yet enabled. Please use the email or phone alongside the form to reach us.</p>
-        <form id="contact-form" novalidate>
-          <div class="form-grid">
-            <label>Name <span aria-hidden="true">*</span><input name="name" autocomplete="name" required /></label>
-            <label>Email <span aria-hidden="true">*</span><input name="email" type="email" autocomplete="email" required /></label>
-            <label>Business name<input name="business_name" autocomplete="organization" /></label>
-            <label>Phone<input name="phone" type="tel" autocomplete="tel" /></label>
-            <label>What can we help with? <span aria-hidden="true">*</span>
-              <select name="service" id="service" required>
-                <option value="" disabled selected>Select a service</option>
-                <option value="custom">Custom AI solution</option>
-                <option value="consulting">AI consulting</option>
-                <option value="voice">AI voice agent</option>
-                <option value="unsure">Not sure yet</option>
-              </select>
-            </label>
-            <label class="full">Message <span aria-hidden="true">*</span><textarea name="message" rows="5" required></textarea></label>
-            <label class="full">How did you hear about us?<input name="referral_source" /></label>
-          </div>
-          <fieldset id="consulting-fields" class="conditional" hidden disabled>
-            <legend>AI consulting details</legend>
-            <label>Session type
-              <select name="session_type" id="session-type"><option value="">Select a session type</option><option>One-on-one</option><option>Group</option><option>Speaking engagement</option></select>
-            </label>
-            <label class="session-format" hidden>Format<select name="session_format"><option value="">Select a format</option><option>Online</option><option>In person (Saskatchewan)</option></select></label>
-            <label class="group-size" hidden>Approximate group size<input name="group_size" type="number" min="1" /></label>
-            <div class="speaking-fields" hidden>
-              <label>Event name<input name="event_name" /></label>
-              <label>Event date<input name="event_date" type="date" /></label>
-              <label>Location<input name="event_location" /></label>
-              <label>Expected audience size<input name="audience_size" type="number" min="1" /></label>
-            </div>
-          </fieldset>
-          <fieldset id="voice-fields" class="conditional" hidden disabled>
-            <legend>AI voice agent details (optional)</legend>
-            <label>Type of business<input name="business_type" /></label>
-            <label>Roughly how many calls do you get per week?<input name="weekly_calls" /></label>
-            <label>What calendar or booking tool do you use?<input name="booking_tool" /></label>
-          </fieldset>
-          <div class="honeypot" aria-hidden="true"><label>Leave this field blank<input name="website_url" tabindex="-1" autocomplete="off" /></label></div>
-          <label class="check"><input type="checkbox" name="updates_opt_in" value="yes" /> I'd like to receive occasional updates from Span AI Solutions.</label>
-          <button class="button button--primary" type="submit" disabled aria-describedby="submission-note">Send message</button>
-          <p id="submission-note" class="section-copy">Submission is disabled in this review draft. No information entered here is sent or saved.</p>
-          <p class="section-copy">Read our <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms</a>.</p>
-        </form>
+        <p><a href="mailto:sales@spanaisolutions.com">sales@spanaisolutions.com</a></p>
+        <a id="enquiry-email" class="button button--primary" href="mailto:sales@spanaisolutions.com">Email us</a>
       </div>
       <aside class="card contact-direct">
         <h2 class="section-heading">Reach us directly</h2>
@@ -69,32 +26,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </main>
 </BaseLayout>
 <script>
-  const service = document.querySelector<HTMLSelectElement>('#service');
-  const sessionType = document.querySelector<HTMLSelectElement>('#session-type');
-  const consulting = document.querySelector<HTMLFieldSetElement>('#consulting-fields');
-  const voice = document.querySelector<HTMLFieldSetElement>('#voice-fields');
-  const show = (element: HTMLElement | null, visible: boolean) => {
-    if (!element) return;
-    element.hidden = !visible;
-    element.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input,select').forEach(field => { field.disabled = !visible; });
-  };
-  const updateSession = () => {
-    const value = sessionType?.value;
-    show(document.querySelector<HTMLElement>('.session-format'), value === 'One-on-one' || value === 'Group');
-    show(document.querySelector<HTMLElement>('.group-size'), value === 'Group');
-    show(document.querySelector<HTMLElement>('.speaking-fields'), value === 'Speaking engagement');
-  };
-  const updateService = () => {
-    const isConsulting = service?.value === 'consulting';
-    const isVoice = service?.value === 'voice';
-    if (consulting) { consulting.hidden = !isConsulting; consulting.disabled = !isConsulting; }
-    if (voice) { voice.hidden = !isVoice; voice.disabled = !isVoice; }
-    updateSession();
-  };
-  const prefill = new URLSearchParams(window.location.search).get('service');
-  if (service && ['custom', 'consulting', 'voice'].includes(prefill ?? '')) service.value = prefill!;
-  service?.addEventListener('change', updateService);
-  sessionType?.addEventListener('change', updateSession);
-  document.querySelector<HTMLFormElement>('#contact-form')?.addEventListener('submit', event => event.preventDefault());
-  updateService();
+  const subjects = new Map([
+    ['custom', 'Custom AI solution enquiry'],
+    ['consulting', 'AI consulting enquiry'],
+    ['voice', 'AI voice agent enquiry'],
+  ]);
+  const subject = subjects.get(new URLSearchParams(window.location.search).get('service') ?? '');
+  const link = document.querySelector<HTMLAnchorElement>('#enquiry-email');
+  if (subject && link) link.href = `mailto:sales@spanaisolutions.com?subject=${encodeURIComponent(subject)}`;
 </script>
