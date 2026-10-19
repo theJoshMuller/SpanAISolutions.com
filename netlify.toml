@@ -7,3 +7,9 @@
 
 [context.production.environment]
   PUBLIC_SPAN_LAUNCH_READY = "true"
+
+[[redirects]]
+  from = "/schedule-a-call"
+  to = "https://cal.com/joshmuller/meeting"
+  status = 301
+  force = true
