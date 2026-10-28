@@ -75,7 +75,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "/*@include workflow.js*/\nconst rows=crmRows($input.first().json,'people');if(rows.length>1)throw Error('Multiple People match opt-in email');const e=$('Normalize opt-in').first().json;return [{json:{method:rows.length?'PATCH':'POST',url:'https://crm.spanaisolutions.com/rest/people'+(rows.length?'/'+rows[0].id:''),body:{courseOptIn:true,courseOptInAt:e.at,...(rows.length?{}:{emails:{primaryEmail:e.email},leadSource:'QUIZ'})}}}];"
+        "jsCode": "/*@include workflow.js*/\nconst rows=crmRows($input.first().json,'people');if(rows.length>1)throw Error('Multiple People match opt-in email');const e=$('Normalize opt-in').first().json;return [{json:{method:rows.length?'PATCH':'POST',url:'https://crm.spanaisolutions.com/rest/people'+(rows.length?'/'+rows[0].id:''),body:{courseOptIn:true,courseOptInAt:e.at,...(rows.length?{}:{emails:{primaryEmail:e.email},leadSource:'QUIZ',leadStatus:'NEW'})}}}];"
       }
     },
     {

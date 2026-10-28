@@ -247,7 +247,7 @@ test("rate slider and reduced motion", async ({ page }) => {
   await expect(page.getByTestId("dollars")).toHaveText("$21,600/year");
 });
 for (const width of [1280, 375])
-  test(`screenshots and overflow ${width}`, async ({ page }) => {
+  test(`screenshots and overflow ${width}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await mock(page);
     await page.goto("/quiz");
@@ -260,9 +260,11 @@ for (const width of [1280, 375])
           ),
         )
         .toBe(true);
+      if (testInfo.project.name !== "desktop") return;
       await page.screenshot({
         path: `docs/review/quiz-${name}-${width}.png`,
         fullPage: true,
+        scale: "css",
       });
     };
     await shot("intro");

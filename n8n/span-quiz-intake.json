@@ -1,5 +1,5 @@
 {
-  "name": "Span \u00b7 Quiz Intake",
+  "name": "Span · Quiz Intake",
   "nodes": [
     {
       "id": "fd6ab37c-e567-455f-862c-235966235cc5",
@@ -240,7 +240,8 @@
       ],
       "parameters": {
         "jsCode": "/*@include templates.js*/\n/*@include mime.js*/\n/*@include workflow.js*/\nconst {env}=$('Envelope').first().json;const mail=renderKamiAlert(env);return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:routeRecipient(env,mail.to),subject:mail.subject,html:mail.html,text:quizAnswerRows(env).map(q=>q.prompt+'\\n'+q.answer).join('\\n\\n')})}}];"
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "id": "c5f359aa-8b53-4b4c-bd2d-316ed37daef7",
@@ -268,7 +269,8 @@
           "id": "WHqx5RVIqdWt1t9l",
           "name": "Span Gmail (josh@spanaisolutions.com)"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "id": "6600bba8-aa02-43b0-b8f9-a4e5d6ce364c",
@@ -887,7 +889,7 @@
         300
       ],
       "parameters": {
-        "jsCode": "// Inspect continued errors only after every applicable downstream attempt.\n// Do not include provider error bodies: they can contain credentials or lead data.\nconst monitored = [\n  \"Find Person\",\n  \"Plan Person upsert\",\n  \"Upsert Person\",\n  \"Keep Person ID\",\n  \"Find Company\",\n  \"Plan Company upsert\",\n  \"Upsert Company\",\n  \"Keep Company ID\",\n  \"Link Company to Person\",\n  \"Link Note to Person\",\n  \"Build Task\",\n  \"Create Discovery Task\",\n  \"Task link payload\",\n  \"Link Task to Person\",\n  \"Build ideas prompt\",\n  \"Generate tailored ideas\",\n  \"Build result MIME\",\n  \"Send result email\",\n  \"Tavily company research\",\n  \"Append five research bullets\",\n  \"Update submission Note\"\n];\nconst failed = monitored.filter(name => {\n  const node = $(name);\n  return node.isExecuted && node.all().some(item => item.json.error != null && item.json.error !== false);\n});\nif (failed.length) {\n  const submissionId = $('Envelope').first().json.env.submissionId;\n  throw Error(`Quiz submission ${submissionId}: failed steps: ${failed.join(', ')}. See authenticated execution for details.`);\n}\nreturn $input.all();"
+        "jsCode": "// Inspect continued errors only after every applicable downstream attempt.\n// Do not include provider error bodies: they can contain credentials or lead data.\nconst monitored = [\n  \"Build Kami MIME\",\n  \"Send Kami alert\",\n  \"Find Person\",\n  \"Plan Person upsert\",\n  \"Upsert Person\",\n  \"Keep Person ID\",\n  \"Find Company\",\n  \"Plan Company upsert\",\n  \"Upsert Company\",\n  \"Keep Company ID\",\n  \"Link Company to Person\",\n  \"Link Note to Person\",\n  \"Build Task\",\n  \"Create Discovery Task\",\n  \"Task link payload\",\n  \"Link Task to Person\",\n  \"Build ideas prompt\",\n  \"Generate tailored ideas\",\n  \"Build result MIME\",\n  \"Send result email\",\n  \"Tavily company research\",\n  \"Append five research bullets\",\n  \"Update submission Note\"\n];\nconst failed = monitored.filter(name => {\n  const node = $(name);\n  return node.isExecuted && node.all().some(item => item.json.error != null && item.json.error !== false);\n});\nif (failed.length) {\n  const submissionId = $('Envelope').first().json.env.submissionId;\n  throw Error(`Quiz submission ${submissionId}: failed steps: ${failed.join(', ')}. See authenticated execution for details.`);\n}\nreturn $input.all();"
       }
     }
   ],
