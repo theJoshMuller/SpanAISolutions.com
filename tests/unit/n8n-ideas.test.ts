@@ -1,0 +1,7 @@
+import { it, expect } from 'vitest';
+import { ideasPrompt,parseIdeas,fallbackIdeas } from '../../n8n/src/ideas.js';
+const pair=[{title:'A',whatItDoes:'Drafts',tools:['Docs'],hoursSavedPerWeek:1},{title:'B',whatItDoes:'Checks',tools:['Sheets'],hoursSavedPerWeek:0.5}];
+it('parses fenced arrays including brackets inside strings',()=>{expect(parseIdeas('```json\n'+JSON.stringify(pair)+'\n```')).toEqual(pair);expect(parseIdeas(JSON.stringify([{...pair[0],title:'[test]'},pair[1]]))).not.toBeNull();});
+it('rejects malformed shape and invalid estimates',()=>{for(const value of [[pair[0]],[{},pair[1]],[{...pair[0],tools:[1]},pair[1]],[{...pair[0],hoursSavedPerWeek:-1},pair[1]]])expect(parseIdeas(JSON.stringify(value))).toBeNull();expect(parseIdeas('oops')).toBeNull();});
+it('provides two distinct complete fallbacks for every chip',()=>{for(const chip of ['followups','data-entry','same-questions','reports','scheduling','content',null]){const ideas=fallbackIdeas(chip);expect(parseIdeas(JSON.stringify(ideas))).toEqual(ideas);expect(ideas[0].title).not.toBe(ideas[1].title);}});
+it('grounds prompt in answers and skills with strict output and safe claims',()=>{const p=ideasPrompt({answers:{C1:'task',C2:'5-10',C3:3,C4:'grow'},result:{path:'leader',skills:[{label:'Context',value:50}]}});expect(p.user).toContain('task');expect(p.user).toContain('grow');expect(p.user).toContain('Context');expect(p.system).toMatch(/exactly 2/);expect(p.system).toMatch(/guarantees/);expect(p.system).toMatch(/prices/);});
