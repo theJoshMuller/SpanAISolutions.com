@@ -297,3 +297,60 @@ test("sixth role option and unavailable storage remain usable", async ({
     }),
   ).toBeVisible();
 });
+
+test('email opt-in confirms and posts link parameters', async ({ page }) => {
+  await page.route('**/api/optin', async route => {
+    expect(route.request().postDataJSON()).toEqual({ submissionId: 'test-id', email: 'jane@example.com', token: 'signed' });
+    await route.fulfill({ json: { ok: true } });
+  });
+  await page.goto('/quiz/subscribed?s=test-id&e=jane%40example.com&t=signed');
+  await expect(page.getByRole('heading', { name: "You're on the list ✓" })).toBeVisible();
+});
+test('email opt-in rejects invalid links without a retry', async ({ page }) => {
+  await page.route('**/api/optin', route => route.fulfill({ status: 403, json: { ok: false } }));
+  await page.goto('/quiz/subscribed?s=test-id&e=jane%40example.com&t=bad');
+  await expect(page.getByText("This link didn't work — try the button on your results again.")).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0);
+});
+test('email opt-in retries a network failure', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/api/optin', route => ++calls === 1 ? route.abort() : route.fulfill({ json: { ok: true } }));
+  await page.goto('/quiz/subscribed?s=test-id&e=jane%40example.com&t=signed');
+  await page.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.getByRole('heading', { name: "You're on the list ✓" })).toBeVisible();
+});
+test('quiz links and privacy notice are integrated', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.desktop-nav a[href="/quiz"]')).toHaveText('AI Level Quiz');
+  await expect(page.locator('main').getByRole('link', { name: "What's your AI level? Take the quiz →" })).toHaveAttribute('href', '/quiz');
+  await page.goto('/privacy');
+  await expect(page.locator('main')).not.toContainText('being updated');
+  await expect(page.locator('main')).toContainText('hello@spanaisolutions.com');
+});
+
+test('missing email opt-in parameters do not send a request', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/api/optin', route => { requests++; return route.fulfill({ json: { ok: true } }); });
+  await page.goto('/quiz/subscribed?s=test-id');
+  await expect(page.getByText("This link didn't work — try the button on your results again.")).toBeVisible();
+  expect(requests).toBe(0);
+});
+test('shared quiz navigation renders on desktop and mobile', async ({ page }) => {
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const nav = page.getByRole('navigation', { name: width === 375 ? 'Mobile navigation' : 'Primary navigation' });
+    if (width === 375) await page.locator('.mobile-nav summary').click();
+    await expect(nav.getByRole('link', { name: 'AI Level Quiz' })).toBeVisible();
+    await page.screenshot({ path: `docs/review/quiz-header-${width}.png`, fullPage: false });
+    await nav.getByRole('link', { name: 'AI Level Quiz' }).click();
+    await expect(page).toHaveURL(/\/quiz\/?$/);
+  }
+});
+
+test('temporary opt-in service errors offer retry', async ({ page }) => {
+  await page.route('**/api/optin', route => route.fulfill({ status: 503, json: { ok: false } }));
+  await page.goto('/quiz/subscribed?s=test-id&e=jane%40example.com&t=signed');
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
+  await expect(page.getByText("This link didn't work — try the button on your results again.")).toHaveCount(0);
+});

@@ -47,10 +47,31 @@ export async function submitQuiz(
     ? { ok: true, optinToken: result.optinToken }
     : { ok: false };
 }
-export async function optIn(body: {
+export interface OptInPayload {
   submissionId: string;
   email: string;
   token: string;
-}): Promise<boolean> {
-  return (await post("/api/optin", body))?.ok === true;
+}
+export type OptInResult = "success" | "invalid" | "network-error";
+export async function optInStatus(body: OptInPayload): Promise<OptInResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch("/api/optin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (response.status >= 500) return "network-error";
+    if (!response.ok) return "invalid";
+    return (await response.json())?.ok === true ? "success" : "invalid";
+  } catch {
+    return "network-error";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+export async function optIn(body: OptInPayload): Promise<boolean> {
+  return (await optInStatus(body)) === "success";
 }
