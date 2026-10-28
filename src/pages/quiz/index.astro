@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/quiz.css';
+---
+<BaseLayout title="What's Your AI Level? | Span AI Solutions" description="Find your AI level, your five skills and the time you could win back.">
+ <main id="main-content" class="page-shell quiz-shell"><div id="quiz"><p>Loading your AI Level Quiz…</p></div><noscript>Please enable JavaScript to take the quiz.</noscript></main>
+ <script>
+ import { mountQuiz } from '../../quiz/ui';
+ const root=document.getElementById('quiz'); if(root) mountQuiz(root);
+ </script>
+</BaseLayout>
