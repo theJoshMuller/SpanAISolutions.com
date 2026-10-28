@@ -76,7 +76,7 @@
             {
               "id": "a25b7606-92fd-4d37-8820-c552d68a77f2",
               "name": "TEST_MODE",
-              "value": true,
+              "value": false,
               "type": "boolean"
             }
           ]

@@ -81,7 +81,7 @@ describe("email and note templates", () => {
       c.html.indexOf("https://calendar.app.google"),
     );
     expect(c.html).toContain("/quiz/gauge/45.png");
-    expect(c.html).toContain("23-4900 Optimist Dr");
+    expect(c.html).toContain("23-4900 Optimist Dr, Regina, SK S4V 4E2");
     expect(c.subject).toContain("25,900");
   });
   it.each([
