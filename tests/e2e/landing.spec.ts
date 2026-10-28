@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const routes = [
   '/', '/custom-ai-solutions', '/ai-consulting', '/ai-voice-agents',
-  '/about', '/contact', '/privacy', '/terms',
+  '/about', '/contact', '/privacy', '/terms', '/quiz', '/quiz/subscribed',
 ];
 
 for (const route of routes) {

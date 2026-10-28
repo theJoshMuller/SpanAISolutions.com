@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Course notification | Span AI Solutions" description="Confirm your free AI agents course notification.">
+  <main class="page-shell hero legal-page" id="main-content">
+    <p class="eyebrow">Free AI agents course</p>
+    <div role="status" aria-live="polite" aria-atomic="true">
+      <h1 class="hero-title" id="confirmation-title">Confirming your request…</h1>
+      <p class="lead" id="confirmation-message">Please wait while we confirm your course notification.</p>
+    </div>
+    <div class="actions">
+      <button class="button button--primary" id="retry-optin" hidden>Try again</button>
+      <a class="button button--ghost" href="/quiz">Take the AI Level Quiz</a>
+    </div>
+    <noscript><p>Enable JavaScript to confirm your request, or contact <a href="mailto:hello@spanaisolutions.com">hello@spanaisolutions.com</a>.</p></noscript>
+  </main>
+</BaseLayout>
+<script>
+  import { optInStatus } from '../../quiz/api';
+  const title = document.querySelector<HTMLElement>('#confirmation-title')!;
+  const message = document.querySelector<HTMLElement>('#confirmation-message')!;
+  const retry = document.querySelector<HTMLButtonElement>('#retry-optin')!;
+  const params = new URLSearchParams(location.search);
+  const body = { submissionId: params.get('s') || '', email: params.get('e') || '', token: params.get('t') || '' };
+  let pending = false;
+  async function confirm() {
+    if (pending) return;
+    pending = true;
+    retry.hidden = true;
+    title.textContent = 'Confirming your request…';
+    message.textContent = 'Please wait while we confirm your course notification.';
+    const result = Object.values(body).every(value => value.trim()) ? await optInStatus(body) : 'invalid';
+    if (result === 'success') {
+      title.textContent = "You're on the list ✓";
+      message.textContent = "We'll email you when the free AI agents course launches.";
+    } else if (result === 'invalid') {
+      title.textContent = "We couldn't confirm your request";
+      message.textContent = "This link didn't work — try the button on your results again.";
+    } else {
+      title.textContent = "We couldn't connect";
+      message.textContent = 'Please check your connection and try again.';
+      retry.hidden = false;
+    }
+    pending = false;
+  }
+  retry.addEventListener('click', confirm);
+  void confirm();
+</script>

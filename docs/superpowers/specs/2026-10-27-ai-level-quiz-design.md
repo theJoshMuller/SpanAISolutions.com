@@ -168,7 +168,7 @@ n8n "Span · Quiz Intake" (responds 200 immediately)
   2. Twenty: find Person by email → create/update; upsert Company by name/email domain (Leader path)
      set custom fields; create Note with all answers + UTM + submissionId
   3. If Discovery → Twenty Task "Call {name} — {org}" assigned to Kami, due now + 1 h
-  4. Claude (Anthropic credential) → 2 tailored ideas as JSON; fallback to canned ideas by C1 chip
+  4. DeepSeek via OpenRouter (n8n "Josh's OpenRouter API Key" credential) → 2 tailored ideas as JSON; fallback to canned ideas by C1 chip
   5. Gmail → result email to lead (segment template)
   6. If Discovery or Nurture-Leader → Tavily company research → append to the Note
   Steps 2–6 "continue on fail".
@@ -248,7 +248,7 @@ Footer: why they got this email (they requested their results), Span's mailing a
 
 **Kami alert** — to `kamila@spanaisolutions.com`; subject prefix by segment: `🔥 Discovery`, `🌤 Nurture-Leader`, `🎓 Course`, then `: {name}, {org} — ≈${value}/yr, AI Level {score}`. Body: tap-to-call `tel:` link, email, role, team size, C1/C4/D1/D2 verbatim, level, Twenty record link. `ALERT_SEGMENTS` in the Config node controls which segments alert.
 
-**Ideas generation** — Anthropic Messages API via the existing n8n Anthropic credential, model `claude-sonnet-5-5`, JSON output: `[{title, whatItDoes, tools[], hoursSavedPerWeek}]` × 2, grounded in C1, C2, C3, C4, path and B-scores. Prompt forbids promises/guarantees and price talk. Timeout 30 s → canned ideas keyed by C1 chip (or a generic pair).
+**Ideas generation** — OpenRouter chat completions via the existing n8n "Josh's OpenRouter API Key" credential, model `deepseek/deepseek-v4.1-flash` (switched from Anthropic on 2026-10-27 at Josh's request), JSON output: `[{title, whatItDoes, tools[], hoursSavedPerWeek}]` × 2, grounded in C1, C2, C3, C4, path and B-scores. Prompt forbids promises/guarantees and price talk. Timeout 30 s → canned ideas keyed by C1 chip (or a generic pair).
 
 ## 10. Reliability, security, privacy
 

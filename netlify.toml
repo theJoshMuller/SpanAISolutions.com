@@ -13,3 +13,7 @@
   to = "https://cal.com/joshmuller/meeting"
   status = 301
   force = true
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

@@ -1,0 +1,84 @@
+{
+  "name": "Span · Quiz Errors",
+  "nodes": [
+    {
+      "id": "e36949a1-fde5-4238-9c8b-651867f8e779",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "374861a5-0bb1-488a-8d98-9bae056cff91",
+      "name": "Build error MIME",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include mime.js*/\nconst d=$input.first().json;const e=d.execution||{};const clean=v=>String(v??'unknown').replace(/[\\r\\n\\x00-\\x1f]/g,' ').slice(0,800);const lines=['Workflow: '+clean(d.workflow?.name),'Failed node: '+clean(e.lastNodeExecuted||d.trigger?.error?.node?.name),'Error: '+clean(e.error?.message||d.trigger?.error?.message),'Execution URL: '+(typeof e.url==='string'&&e.url.startsWith('https://n8n.joshmuller.ca/')?e.url:'unavailable'),'submissionId: '+clean(e.customData?.submissionId||'unavailable (see authenticated execution)')];const text=lines.join('\\n');return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:'josh@spanaisolutions.com',subject:'Span Quiz workflow error',text,html:'<pre>'+text.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre>'})}}];"
+      }
+    },
+    {
+      "id": "323a559a-c58e-4fb8-841d-5941ff4cab39",
+      "name": "Send error alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {raw:$json.raw} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WHqx5RVIqdWt1t9l",
+          "name": "Span Gmail (josh@spanaisolutions.com)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build error MIME",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build error MIME": {
+      "main": [
+        [
+          {
+            "node": "Send error alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

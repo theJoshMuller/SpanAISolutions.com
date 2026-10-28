@@ -1,0 +1,138 @@
+// Import-free helpers shared by workflow Code nodes and mocked unit tests.
+export function wfEscape(value) {
+  return String(value ?? "")
+    .replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    )
+    .replace(/[\\`*_{}\[\]()!|#~]/g, "\\$&")
+    .replace(/^( *)([-+])/gm, "$1\\$2")
+    .replace(/^( *\d+)([.)])(?=\s|$)/gm, "$1\\$2");
+}
+export function richText(markdown) {
+  return {
+    markdown,
+    blocknote: JSON.stringify(
+      markdown.split("\n").map((text) => ({
+        type: "paragraph",
+        props: {},
+        content: [
+          {
+            type: "text",
+            text,
+            styles: {},
+          },
+        ],
+        children: [],
+      })),
+    ),
+  };
+}
+export function noteClaimPayload(env, note) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      env.submissionId,
+    )
+  )
+    throw Error("Invalid submission UUID");
+  return {
+    query:
+      "mutation QuizClaim($data: NoteCreateInput!) { createNote(data: $data) { id } }",
+    variables: {
+      data: {
+        id: env.submissionId,
+        title: note.title,
+        bodyV2: richText(note.markdown),
+      },
+    },
+  };
+}
+export function verifyClaim(response, id) {
+  return !response?.errors?.length && response?.data?.createNote?.id === id;
+}
+export function personPatch(env, create) {
+  const roles = {
+    owner: "Owner / founder",
+    executive: "Executive director / C-suite",
+    manager: "Director / manager",
+    member: "Team member",
+    freelancer: "Freelancer / solo",
+    student: "Student / exploring",
+  };
+  return {
+    name: {
+      firstName: env.contact.firstName,
+    },
+    emails: {
+      primaryEmail: env.contact.email.trim().toLowerCase(),
+    },
+    ...(env.contact.phone
+      ? {
+          phones: {
+            primaryPhoneNumber: env.contact.phone,
+          },
+        }
+      : {}),
+    jobTitle: roles[env.answers.A1],
+    leadSource: "QUIZ",
+    segment: env.result.segment.toUpperCase().replaceAll("-", "_"),
+    aiLevel: env.result.aiLevel,
+    estAnnualValue: {
+      amountMicros: env.result.dollarsPerYear * 1e6,
+      currencyCode: "CAD",
+    },
+    ...(create
+      ? {
+          leadStatus: "NEW",
+        }
+      : {}),
+  };
+}
+export function taskPayload(env, assigneeId) {
+  return {
+    title:
+      `${env.test ? "[TEST] " : ""}Call ${env.contact.firstName} — ${env.contact.organization || "—"} (≈$${env.result.dollarsPerYear}/yr)`.replace(
+        /[\r\n]/g,
+        " ",
+      ),
+    assigneeId,
+    dueAt: new Date(Date.parse(env.receivedAt) + 3600000).toISOString(),
+    status: "TODO",
+    bodyV2: richText(
+      ["C1", "C4", "D2"]
+        .map((k) => `${k}: ${wfEscape(env.answers[k])}`)
+        .join("\n\n"),
+    ),
+  };
+}
+export function routeRecipient(env, actual) {
+  return env.test ? "josh@spanaisolutions.com" : actual;
+}
+export function researchMarkdown(data) {
+  return (Array.isArray(data?.results) ? data.results : [])
+    .slice(0, 5)
+    .map((r) => {
+      // No URL global in n8n's Code-node sandbox.
+      const url = /^https?:\/\/[^\s"'<>\\/?#]+[^\s"'<>\\]*$/i.test(
+        String(r.url ?? ""),
+      )
+        ? r.url
+        : "";
+      return `- ${wfEscape(r.title)}: ${wfEscape(String(r.content || "").slice(0, 700))}${url ? " — " + wfEscape(url) : ""}`;
+    })
+    .join("\n");
+}
+export function crmRows(response, plural) {
+  const d = response?.data;
+  return Array.isArray(d) ? d : Array.isArray(d?.[plural]) ? d[plural] : [];
+}
+export function crmRecord(response, verb) {
+  return response?.data?.[verb];
+}

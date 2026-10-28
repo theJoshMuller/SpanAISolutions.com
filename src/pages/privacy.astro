@@ -1,9 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Privacy Policy | Span AI Solutions" description="Contact Span AI Solutions with privacy questions.">
-  <main class="page-shell hero legal-page">
+<BaseLayout title="Privacy Policy | Span AI Solutions" description="How Span AI Solutions handles quiz information and privacy requests.">
+  <main class="page-shell hero legal-page" id="main-content">
     <h1 class="hero-title">Privacy Policy</h1>
-    <p class="lead">This page is being updated. For questions, contact <a href="mailto:sales@spanaisolutions.com">sales@spanaisolutions.com</a>.</p>
+    <div class="privacy-copy">
+      <h2>What the quiz collects</h2>
+      <p>We collect your quiz answers, name, email address, and any organisation or phone number you provide. We also collect campaign information from the link you used (UTM parameters) and the referring page, when available.</p>
+      <h2>Why we use it</h2>
+      <p>We use this information to calculate and email your results and tailored ideas, and to follow up about services you asked about. We send course notifications only if you opt in. We record that choice and when you made it.</p>
+      <h2>Where information is stored</h2>
+      <p>We store quiz information in our self-hosted CRM. Our website and automation tools process it to deliver your results. We use Google Workspace to send email.</p>
+      <h2>Retention</h2>
+      <p>Quiz information remains in our CRM for results delivery and follow-up. You can contact us to ask what we hold or request deletion.</p>
+      <h2>Access and deletion requests</h2>
+      <p>Email <a href="mailto:hello@spanaisolutions.com">hello@spanaisolutions.com</a> to request access to or deletion of your information, or to ask a privacy question.</p>
+      <h2>Contact us</h2>
+      <p>Span AI Solutions<br />23-4900 Optimist Dr, Regina, SK S4V 4E2</p>
+    </div>
   </main>
 </BaseLayout>
+<style>
+  .privacy-copy { max-width: 72ch; line-height: 1.75; overflow-wrap: anywhere; }
+  h2 { margin-top: 2rem; font-family: var(--font-display); }
+</style>

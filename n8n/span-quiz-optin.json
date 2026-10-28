@@ -1,0 +1,159 @@
+{
+  "name": "Span · Quiz Course Opt-in",
+  "nodes": [
+    {
+      "id": "078d57cf-8068-4c07-9ae6-8ff39c5c219c",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "span-quiz-optin-7ab27660f385328cea55f8b3d1dcd232",
+        "authentication": "headerAuth",
+        "responseMode": "lastNode",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_SECRET_CREDENTIAL",
+          "name": "Span Quiz Webhook Secret"
+        }
+      },
+      "webhookId": "293d3de2-70f9-4ccb-bb6d-2619ee348075"
+    },
+    {
+      "id": "0eec93d6-6a97-47e2-8e30-e124c943465f",
+      "name": "Normalize opt-in",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const body=$input.first().json.body;if(!body?.email||!body.submissionId)throw Error('Missing signed opt-in envelope');return [{json:{email:body.email.trim().toLowerCase(),at:new Date().toISOString()}}];"
+      }
+    },
+    {
+      "id": "22795b03-341c-4c8e-8c1f-c0045136c4ea",
+      "name": "Find opted-in Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://crm.spanaisolutions.com/rest/people?filter='+encodeURIComponent('emails.primaryEmail[eq]:'+$json.email) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      }
+    },
+    {
+      "id": "ea6aba11-0b07-4671-a149-a4afaf40b09d",
+      "name": "Plan opt-in upsert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst rows=crmRows($input.first().json,'people');if(rows.length>1)throw Error('Multiple People match opt-in email');const e=$('Normalize opt-in').first().json;return [{json:{method:rows.length?'PATCH':'POST',url:'https://crm.spanaisolutions.com/rest/people'+(rows.length?'/'+rows[0].id:''),body:{courseOptIn:true,courseOptInAt:e.at,...(rows.length?{}:{emails:{primaryEmail:e.email},leadSource:'QUIZ',leadStatus:'NEW'})}}}];"
+      }
+    },
+    {
+      "id": "9214d3b3-5fd8-4de2-99c5-0f8b45cea05e",
+      "name": "Save course consent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize opt-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize opt-in": {
+      "main": [
+        [
+          {
+            "node": "Find opted-in Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find opted-in Person": {
+      "main": [
+        [
+          {
+            "node": "Plan opt-in upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan opt-in upsert": {
+      "main": [
+        [
+          {
+            "node": "Save course consent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
