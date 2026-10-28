@@ -1,5 +1,5 @@
 {
-  "name": "Span · Quiz Intake",
+  "name": "Span \u00b7 Quiz Intake",
   "nodes": [
     {
       "id": "fd6ab37c-e567-455f-862c-235966235cc5",
@@ -876,6 +876,19 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "id": "3b45fcf9-0ab7-4288-b3bf-bd23b1ee0a3a",
+      "name": "Report deferred failures",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7700,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Inspect continued errors only after every applicable downstream attempt.\n// Do not include provider error bodies: they can contain credentials or lead data.\nconst monitored = [\n  \"Find Person\",\n  \"Plan Person upsert\",\n  \"Upsert Person\",\n  \"Keep Person ID\",\n  \"Find Company\",\n  \"Plan Company upsert\",\n  \"Upsert Company\",\n  \"Keep Company ID\",\n  \"Link Company to Person\",\n  \"Link Note to Person\",\n  \"Build Task\",\n  \"Create Discovery Task\",\n  \"Task link payload\",\n  \"Link Task to Person\",\n  \"Build ideas prompt\",\n  \"Generate tailored ideas\",\n  \"Build result MIME\",\n  \"Send result email\",\n  \"Tavily company research\",\n  \"Append five research bullets\",\n  \"Update submission Note\"\n];\nconst failed = monitored.filter(name => {\n  const node = $(name);\n  return node.isExecuted && node.all().some(item => item.json.error != null && item.json.error !== false);\n});\nif (failed.length) {\n  const submissionId = $('Envelope').first().json.env.submissionId;\n  throw Error(`Quiz submission ${submissionId}: failed steps: ${failed.join(', ')}. See authenticated execution for details.`);\n}\nreturn $input.all();"
+      }
     }
   ],
   "connections": {
@@ -1267,6 +1280,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Report deferred failures",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -1286,6 +1306,17 @@
         [
           {
             "node": "Update submission Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update submission Note": {
+      "main": [
+        [
+          {
+            "node": "Report deferred failures",
             "type": "main",
             "index": 0
           }
