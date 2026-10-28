@@ -1,0 +1,134 @@
+npm notice run spanaisolutions-com@0.0.1 test:unit
+npm notice run vitest run
+
+ RUN  v5.0.5 /home/yeshu/projects/SpanAISolutions.com
+
+
+ Test Files  12 passed (12)
+      Tests  131 passed (131)
+   Start at  19:44:57
+   Duration  1.17s (tests 44%, import 36%, transform 14%, worker 6%)
+
+npm notice run spanaisolutions-com@0.0.1 check
+npm notice run astro check
+19:45:00 [types] Generated 82ms
+19:45:00 [check] Getting diagnostics for Astro files in /home/yeshu/projects/SpanAISolutions.com...
+Result (54 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+npm notice run spanaisolutions-com@0.0.1 build
+npm notice run astro build
+19:45:06 [types] Generated 58ms
+19:45:06 [build] output: "static"
+19:45:06 [build] mode: "static"
+19:45:06 [build] directory: /home/yeshu/projects/SpanAISolutions.com/dist/
+19:45:06 [build] Collecting build info...
+19:45:06 [build] ✓ Completed in 93ms.
+19:45:06 [build] Building static entrypoints...
+19:45:07 [vite] ✓ built in 1.25s
+19:45:07 [vite] ✓ built in 74ms
+19:45:07 [build] Rearranging server assets...
+
+ generating static routes 
+19:45:07   ├─ /about/index.html (+16ms) 
+19:45:07   ├─ /ai-consulting/index.html (+4ms) 
+19:45:07   ├─ /ai-voice-agents/index.html (+4ms) 
+19:45:07   ├─ /contact/index.html (+5ms) 
+19:45:07   ├─ /custom-ai-solutions/index.html (+4ms) 
+19:45:07   ├─ /privacy/index.html (+3ms) 
+19:45:07   ├─ /quiz/subscribed/index.html (+4ms) 
+19:45:07   ├─ /quiz/index.html (+4ms) 
+19:45:07   ├─ /terms/index.html (+3ms) 
+19:45:07   ├─ /index.html (+3ms) 
+19:45:07 ✓ Completed in 70ms.
+
+19:45:07 [build] ✓ Completed in 1.47s.
+19:45:07 [build] 10 page(s) built in 1.57s
+19:45:07 [build] Complete!
+npm notice run spanaisolutions-com@0.0.1 test:e2e
+npm notice run playwright test
+[WebServer] npm notice run spanaisolutions-com@0.0.1 build
+[WebServer] npm notice run astro build
+[WebServer] npm notice run spanaisolutions-com@0.0.1 preview
+[WebServer] npm notice run astro preview --host 127.0.0.1 --port 4329 --strictPort
+
+Running 74 tests using 4 workers
+
+  ✓   1 [mobile] › tests/e2e/landing.spec.ts:9:3 › / renders its own title/H1, shared footer, and fits 375px (343ms)
+  ✓   2 [desktop] › tests/e2e/landing.spec.ts:9:3 › / renders its own title/H1, shared footer, and fits 375px (341ms)
+  ✓   6 [desktop] › tests/e2e/landing.spec.ts:9:3 › /custom-ai-solutions renders its own title/H1, shared footer, and fits 375px (203ms)
+  ✓   5 [mobile] › tests/e2e/landing.spec.ts:9:3 › /custom-ai-solutions renders its own title/H1, shared footer, and fits 375px (220ms)
+  ✓   7 [desktop] › tests/e2e/landing.spec.ts:9:3 › /ai-consulting renders its own title/H1, shared footer, and fits 375px (185ms)
+  ✓   8 [mobile] › tests/e2e/landing.spec.ts:9:3 › /ai-consulting renders its own title/H1, shared footer, and fits 375px (195ms)
+  ✓   9 [desktop] › tests/e2e/landing.spec.ts:9:3 › /ai-voice-agents renders its own title/H1, shared footer, and fits 375px (183ms)
+  ✓  10 [mobile] › tests/e2e/landing.spec.ts:9:3 › /ai-voice-agents renders its own title/H1, shared footer, and fits 375px (211ms)
+  ✓  11 [desktop] › tests/e2e/landing.spec.ts:9:3 › /about renders its own title/H1, shared footer, and fits 375px (211ms)
+  ✓  12 [mobile] › tests/e2e/landing.spec.ts:9:3 › /about renders its own title/H1, shared footer, and fits 375px (185ms)
+  ✓  13 [desktop] › tests/e2e/landing.spec.ts:9:3 › /contact renders its own title/H1, shared footer, and fits 375px (180ms)
+  ✓  14 [mobile] › tests/e2e/landing.spec.ts:9:3 › /contact renders its own title/H1, shared footer, and fits 375px (201ms)
+  ✓  15 [desktop] › tests/e2e/landing.spec.ts:9:3 › /privacy renders its own title/H1, shared footer, and fits 375px (159ms)
+  ✓  16 [mobile] › tests/e2e/landing.spec.ts:9:3 › /privacy renders its own title/H1, shared footer, and fits 375px (173ms)
+  ✓  17 [desktop] › tests/e2e/landing.spec.ts:9:3 › /terms renders its own title/H1, shared footer, and fits 375px (155ms)
+  ✓  18 [mobile] › tests/e2e/landing.spec.ts:9:3 › /terms renders its own title/H1, shared footer, and fits 375px (176ms)
+  ✓  19 [desktop] › tests/e2e/landing.spec.ts:9:3 › /quiz renders its own title/H1, shared footer, and fits 375px (202ms)
+  ✓  20 [mobile] › tests/e2e/landing.spec.ts:9:3 › /quiz renders its own title/H1, shared footer, and fits 375px (183ms)
+  ✓  21 [desktop] › tests/e2e/landing.spec.ts:9:3 › /quiz/subscribed renders its own title/H1, shared footer, and fits 375px (172ms)
+  ✓  22 [mobile] › tests/e2e/landing.spec.ts:9:3 › /quiz/subscribed renders its own title/H1, shared footer, and fits 375px (186ms)
+  ✓  23 [desktop] › tests/e2e/landing.spec.ts:20:1 › homepage presents the new offer and service navigation (223ms)
+  ✓  24 [mobile] › tests/e2e/landing.spec.ts:20:1 › homepage presents the new offer and service navigation (234ms)
+  ✓  25 [desktop] › tests/e2e/landing.spec.ts:33:1 › brand typography matches the existing site at desktop and mobile sizes (199ms)
+  ✓  26 [mobile] › tests/e2e/landing.spec.ts:33:1 › brand typography matches the existing site at desktop and mobile sizes (247ms)
+  ✓  27 [desktop] › tests/e2e/landing.spec.ts:52:1 › mobile menu opens and routes to the services (322ms)
+  ✓  28 [mobile] › tests/e2e/landing.spec.ts:52:1 › mobile menu opens and routes to the services (345ms)
+  ✓  29 [desktop] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves custom context (233ms)
+  ✓  30 [mobile] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves custom context (215ms)
+  ✓  31 [desktop] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves consulting context (236ms)
+  ✓  32 [mobile] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves consulting context (185ms)
+  ✓   3 [desktop] › tests/e2e/quiz.spec.ts:54:1 › individual keyboard path has all 10 questions and course opt-in (3.6s)
+  ✓  33 [desktop] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves voice context (224ms)
+  ✓   4 [mobile] › tests/e2e/quiz.spec.ts:54:1 › individual keyboard path has all 10 questions and course opt-in (3.6s)
+  ✓  34 [mobile] › tests/e2e/landing.spec.ts:67:3 › email enquiry preserves voice context (192ms)
+  ✓  36 [desktop] › tests/e2e/landing.spec.ts:73:1 › email-only contact has no intake form and uses the confirmed phone number (313ms)
+  ✓  38 [mobile] › tests/e2e/landing.spec.ts:73:1 › email-only contact has no intake form and uses the confirmed phone number (354ms)
+  ✓  35 [desktop] › tests/e2e/quiz.spec.ts:111:1 › leader discovery gate and calendar (558ms)
+  ✓  37 [mobile] › tests/e2e/quiz.spec.ts:111:1 › leader discovery gate and calendar (554ms)
+  ✓  39 [desktop] › tests/e2e/landing.spec.ts:83:1 › Josh portrait is rendered on About and AI Consulting (401ms)
+  ✓  40 [mobile] › tests/e2e/landing.spec.ts:83:1 › Josh portrait is rendered on About and AI Consulting (400ms)
+  ✓  43 [desktop] › tests/e2e/landing.spec.ts:93:1 › edited Kamila and joint founder photos render without placeholders (320ms)
+  ✓  45 [desktop] › tests/e2e/landing.spec.ts:107:1 › brand images resolve (48ms)
+  ✓  44 [mobile] › tests/e2e/landing.spec.ts:93:1 › edited Kamila and joint founder photos render without placeholders (310ms)
+  ✓  46 [mobile] › tests/e2e/landing.spec.ts:107:1 › brand images resolve (45ms)
+  ✓  41 [desktop] › tests/e2e/quiz.spec.ts:129:1 › leader team size rejects values outside the integer range (1.2s)
+  ✓  42 [mobile] › tests/e2e/quiz.spec.ts:129:1 › leader team size rejects values outside the integer range (2.4s)
+  ✓  47 [desktop] › tests/e2e/quiz.spec.ts:142:1 › role change prunes leader answers and contact (4.2s)
+  ✓  48 [mobile] › tests/e2e/quiz.spec.ts:142:1 › role change prunes leader answers and contact (3.4s)
+  ✓  49 [desktop] › tests/e2e/quiz.spec.ts:169:1 › double submit, refresh and failed submission retry keep one id (966ms)
+  ✓  50 [mobile] › tests/e2e/quiz.spec.ts:169:1 › double submit, refresh and failed submission retry keep one id (946ms)
+  ✓  51 [desktop] › tests/e2e/quiz.spec.ts:209:1 › pending submission freezes contact and keeps the signed opt-in email (465ms)
+  ✓  53 [desktop] › tests/e2e/quiz.spec.ts:238:1 › rate slider and reduced motion (378ms)
+  ✓  52 [mobile] › tests/e2e/quiz.spec.ts:209:1 › pending submission freezes contact and keeps the signed opt-in email (477ms)
+  ✓  55 [mobile] › tests/e2e/quiz.spec.ts:238:1 › rate slider and reduced motion (321ms)
+  ✓  56 [mobile] › tests/e2e/quiz.spec.ts:250:3 › screenshots and overflow 1280 (5.7s)
+  ✓  54 [desktop] › tests/e2e/quiz.spec.ts:250:3 › screenshots and overflow 1280 (7.5s)
+  ✓  57 [mobile] › tests/e2e/quiz.spec.ts:250:3 › screenshots and overflow 375 (5.6s)
+  ✓  59 [mobile] › tests/e2e/quiz.spec.ts:282:1 › sixth role option and unavailable storage remain usable (533ms)
+  ✓  60 [mobile] › tests/e2e/quiz.spec.ts:303:1 › email opt-in confirms and posts link parameters (170ms)
+  ✓  61 [mobile] › tests/e2e/quiz.spec.ts:311:1 › email opt-in rejects invalid links without a retry (170ms)
+  ✓  62 [mobile] › tests/e2e/quiz.spec.ts:317:1 › email opt-in retries a network failure (221ms)
+  ✓  63 [mobile] › tests/e2e/quiz.spec.ts:324:1 › quiz links and privacy notice are integrated (216ms)
+  ✓  64 [mobile] › tests/e2e/quiz.spec.ts:333:1 › missing email opt-in parameters do not send a request (133ms)
+  ✓  58 [desktop] › tests/e2e/quiz.spec.ts:250:3 › screenshots and overflow 375 (6.5s)
+  ✓  66 [desktop] › tests/e2e/quiz.spec.ts:282:1 › sixth role option and unavailable storage remain usable (527ms)
+  ✓  67 [desktop] › tests/e2e/quiz.spec.ts:303:1 › email opt-in confirms and posts link parameters (167ms)
+  ✓  68 [desktop] › tests/e2e/quiz.spec.ts:311:1 › email opt-in rejects invalid links without a retry (151ms)
+  ✓  69 [desktop] › tests/e2e/quiz.spec.ts:317:1 › email opt-in retries a network failure (241ms)
+  ✓  70 [desktop] › tests/e2e/quiz.spec.ts:324:1 › quiz links and privacy notice are integrated (227ms)
+  ✓  71 [desktop] › tests/e2e/quiz.spec.ts:333:1 › missing email opt-in parameters do not send a request (162ms)
+  ✓  65 [mobile] › tests/e2e/quiz.spec.ts:340:1 › shared quiz navigation renders on desktop and mobile (2.8s)
+  ✓  73 [mobile] › tests/e2e/quiz.spec.ts:353:1 › temporary opt-in service errors offer retry (172ms)
+  ✓  72 [desktop] › tests/e2e/quiz.spec.ts:340:1 › shared quiz navigation renders on desktop and mobile (959ms)
+  ✓  74 [desktop] › tests/e2e/quiz.spec.ts:353:1 › temporary opt-in service errors offer retry (158ms)
+
+  74 passed (34.4s)
