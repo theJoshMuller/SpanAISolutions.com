@@ -11,9 +11,10 @@ const individual = {
   C2: "5-10",
   C4: null,
 };
-const leader = { ...individual, A1: "owner", C3: 2, D1: "for", D2: null };
+const leader = { ...individual, A1: "owner", C3: 2, D1: "for", D2: "We need reliable reporting" };
 async function seed(page: Page, answers = individual, screen = "gate") {
-  await page.addInitScript(
+  await page.goto("/quiz");
+  await page.evaluate(
     ({ answers, screen }) =>
       sessionStorage.setItem(
         "span-quiz",
@@ -33,7 +34,7 @@ async function seed(page: Page, answers = individual, screen = "gate") {
       ),
     { answers, screen },
   );
-  await page.goto("/quiz");
+  await page.reload();
 }
 async function mock(page: Page, fail = false) {
   await page.route("**/api/quiz", (route) =>
@@ -42,6 +43,13 @@ async function mock(page: Page, fail = false) {
       json: fail ? {} : { ok: true, optinToken: "signed" },
     }),
   );
+}
+async function tabTo(page: Page, target: ReturnType<Page["getByRole"]>) {
+  for (let i = 0; i < 30; i++) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((el) => el === document.activeElement)) return;
+  }
+  await expect(target).toBeFocused();
 }
 test("individual keyboard path has all 10 questions and course opt-in", async ({
   page,
@@ -53,15 +61,20 @@ test("individual keyboard path has all 10 questions and course opt-in", async ({
     return r.fulfill({ json: { ok: true } });
   });
   await page.goto("/quiz");
-  await page.getByRole("button", { name: "Start the quiz" }).focus();
+  await tabTo(page, page.getByRole("button", { name: "Start the quiz" }));
   await page.keyboard.press("Enter");
   for (const key of ["4", "2", "3", "3", "3", "3", "3"]) {
     await page.keyboard.press(key);
     await page.waitForTimeout(300);
   }
-  await page.getByRole("textbox").fill("Building reports");
-  await page.keyboard.press("Tab");
-  await page.getByRole("button", { name: "Next", exact: true }).focus();
+  await tabTo(page, page.getByRole("textbox"));
+  await page.keyboard.type("short");
+  await tabTo(page, page.getByRole("button", { name: "Next", exact: true }));
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("textbox")).toBeFocused();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type("Building reports");
+  await tabTo(page, page.getByRole("button", { name: "Next", exact: true }));
   await page.keyboard.press("Enter");
   await page.keyboard.press("3");
   await page.waitForTimeout(300);
@@ -70,18 +83,25 @@ test("individual keyboard path has all 10 questions and course opt-in", async ({
       .locator(".quiz-progress")
       .getByText("Question 10 of 10", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Next", exact: true }).focus();
+  await tabTo(page, page.getByRole("button", { name: "Next", exact: true }));
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("Organization")).toHaveCount(0);
   await expect(page.getByLabel("Best number")).toHaveCount(0);
-  await page.getByLabel("First name").fill("Jane");
-  await page.getByLabel("Email", { exact: true }).fill("jane@example.com");
-  await page.getByRole("button", { name: "Show my results" }).click();
-  await page
-    .getByRole("button", {
-      name: "Notify me when the free AI agents course launches",
-    })
-    .click();
+  await tabTo(page, page.getByLabel("First name"));
+  await page.keyboard.type("Jane");
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
+  await page.keyboard.type("invalid");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page.getByLabel("Email", { exact: true })).toBeFocused();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type("jane@example.com");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Your full results" })).toBeVisible();
+  await tabTo(page, page.getByRole("button", { name: "Notify me when the free AI agents course launches" }));
+  await page.keyboard.press("Enter");
   await expect(
     page.getByText("✓ You're on the list", { exact: true }),
   ).toBeVisible();
@@ -106,6 +126,19 @@ test("leader discovery gate and calendar", async ({ page }) => {
   ).toHaveAttribute("href", "https://calendar.app.google/bNDHFsbv5cj88RzPA");
   await expect(page.getByText(/Kami will|we'll call/i)).toHaveCount(0);
 });
+test("leader team size rejects values outside the integer range", async ({ page }) => {
+  await seed(page, leader, "C3");
+  const input = page.getByRole("spinbutton");
+  for (const value of ["0", "501", "1.5"]) {
+    await input.fill(value);
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(input).toBeFocused();
+    expect(await input.evaluate((el: HTMLInputElement) => el.validity.valid)).toBe(false);
+  }
+  await input.fill("2");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(input).toHaveCount(0);
+});
 test("role change prunes leader answers and contact", async ({ page }) => {
   await mock(page);
   await seed(page, leader);
@@ -118,8 +151,20 @@ test("role change prunes leader answers and contact", async ({ page }) => {
   );
   expect(state.answers.C3).toBeUndefined();
   expect(state.answers.D1).toBeUndefined();
+  expect(state.answers.D2).toBeUndefined();
   expect(state.contact.organization).toBeNull();
   expect(state.contact.phone).toBeNull();
+  // Continue the current path all the way back to its gate.
+  for (const key of ["2", "3", "3", "3", "3", "3"]) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(300);
+  }
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.keyboard.press("3");
+  await page.waitForTimeout(300);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByLabel("Organization")).toHaveCount(0);
+  await expect(page.getByLabel("Best number")).toHaveCount(0);
 });
 test("double submit, refresh and failed submission retry keep one id", async ({
   page,
@@ -136,8 +181,19 @@ test("double submit, refresh and failed submission retry keep one id", async ({
     });
   });
   await page.route("**/api/optin", (r) => r.fulfill({ json: { ok: true } }));
-  await seed(page);
+  await page.goto("/quiz");
+  const originalId = await page.evaluate(() => JSON.parse(sessionStorage.getItem("span-quiz")!).submissionId);
+  expect(originalId).toMatch(/^[0-9a-f-]{36}$/);
+  await page.evaluate((answers) => {
+    const saved = JSON.parse(sessionStorage.getItem("span-quiz")!);
+    saved.screen = "gate";
+    saved.answers = answers;
+    saved.contact = { firstName: "Jane", email: "jane@example.com", organization: null, phone: null };
+    sessionStorage.setItem("span-quiz", JSON.stringify(saved));
+  }, individual);
   await page.reload();
+  await expect(page.getByLabel("First name")).toHaveValue("Jane");
+  expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("span-quiz")!).submissionId)).toBe(originalId);
   await page.getByRole("button", { name: "Show my results" }).dblclick();
   await expect(
     page.getByRole("heading", { name: "Your full results" }),
@@ -148,7 +204,36 @@ test("double submit, refresh and failed submission retry keep one id", async ({
     page.getByText("✓ You're on the list", { exact: true }),
   ).toBeVisible();
   expect(hits).toBe(2);
-  expect(new Set(ids).size).toBe(1);
+  expect(ids).toEqual([originalId, originalId]);
+});
+test("pending submission freezes contact and keeps the signed opt-in email", async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => { release = resolve; });
+  let submitted: any;
+  let optedIn: any;
+  await page.route("**/api/quiz", async (route) => {
+    submitted = route.request().postDataJSON();
+    await pending;
+    await route.fulfill({ json: { ok: true, optinToken: "signed-for-jane" } });
+  });
+  await page.route("**/api/optin", (route) => {
+    optedIn = route.request().postDataJSON();
+    return route.fulfill({ json: { ok: true } });
+  });
+  await seed(page);
+  await page.getByRole("button", { name: "Show my results" }).click();
+  await expect.poll(() => submitted?.contact.email).toBe("jane@example.com");
+  const email = page.getByLabel("Email", { exact: true });
+  // Try a real keyboard edit while the mocked response is held open.
+  await email.click({ force: true });
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.type("edited@example.com");
+  await expect(email).toBeDisabled();
+  await expect(email).toHaveValue("jane@example.com");
+  release();
+  await page.getByRole("button", { name: "Notify me when the free AI agents course launches" }).click();
+  await expect(page.getByText("✓ You're on the list", { exact: true })).toBeVisible();
+  expect(optedIn).toEqual({ submissionId: submitted.submissionId, email: submitted.contact.email, token: "signed-for-jane" });
 });
 test("rate slider and reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });

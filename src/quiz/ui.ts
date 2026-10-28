@@ -291,7 +291,11 @@ export function mountQuiz(root: HTMLElement): void {
       };
       persist();
       const btn = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
-      btn.disabled = true;
+      // Keep the contact values paired with the email signed by this request.
+      // The form is replaced by results on success or failure.
+      form.querySelectorAll<HTMLInputElement | HTMLButtonElement>("input, button").forEach((control) => {
+        control.disabled = true;
+      });
       btn.textContent = "Preparing your results…";
       await submit();
       go("results");
