@@ -14,13 +14,12 @@ export function escapeHtml(s) {
 export function safeHeader(s) {
   return String(s ?? "").replace(/[\r\n\x00-\x1f\x7f]+/g, " ");
 }
+// No URL global in n8n's Code-node sandbox, so validate with a pattern instead.
 export function safeUrl(s) {
-  try {
-    const u = new URL(s);
-    return /^https?:$/.test(u.protocol) ? escapeHtml(u.href) : "";
-  } catch {
-    return "";
-  }
+  const u = String(s ?? "");
+  return /^https?:\/\/[^\s"'<>\\/?#]+[^\s"'<>\\]*$/i.test(u)
+    ? escapeHtml(u)
+    : "";
 }
 export function quizMath(env) {
   const a = env.answers;

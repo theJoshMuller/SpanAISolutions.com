@@ -119,11 +119,12 @@ export function researchMarkdown(data) {
   return (Array.isArray(data?.results) ? data.results : [])
     .slice(0, 5)
     .map((r) => {
-      let url = "";
-      try {
-        const u = new URL(r.url);
-        if (["https:", "http:"].includes(u.protocol)) url = u.href;
-      } catch {}
+      // No URL global in n8n's Code-node sandbox.
+      const url = /^https?:\/\/[^\s"'<>\\/?#]+[^\s"'<>\\]*$/i.test(
+        String(r.url ?? ""),
+      )
+        ? r.url
+        : "";
       return `- ${wfEscape(r.title)}: ${wfEscape(String(r.content || "").slice(0, 700))}${url ? " — " + wfEscape(url) : ""}`;
     })
     .join("\n");
