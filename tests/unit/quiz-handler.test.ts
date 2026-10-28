@@ -1,8 +1,14 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { handleQuizSubmission, handleOptin, replayOutbox, type KV, type QuizEnv } from '../../netlify/lib/quiz-handler';
+import { handleQuizSubmission, handleOptin, replayOutbox, type KV, type RateStore, type QuizEnv } from '../../netlify/lib/quiz-handler';
 import { signOptin } from '../../netlify/lib/token';
 import { scoreAll } from '../../src/quiz/scoring';
-class Memory implements KV {
+class Memory implements KV, RateStore {
+  async reserve(k:string,limit:number) {
+    const count=Number(this.data.get(k) ?? 0);
+    if(count>=limit) return false;
+    this.data.set(k,String(count+1));
+    return true;
+  }
   data = new Map<string,string>();
   async get(k:string) { return this.data.get(k) ?? null; }
   async set(k:string,v:string) { this.data.set(k,v); }
@@ -37,4 +43,12 @@ test('replay deletes only successful deliveries and continues after malformed en
 });
 test('optin rejects invalid tokens and reports delivery failures honestly',async()=>{
  const ctx=context(),p=payload();const body={submissionId:p.submissionId,email:p.contact.email,token:'bad'};expect((await handleOptin(body,ctx)).status).toBe(403);expect(ctx.fetch).not.toHaveBeenCalled();body.token=signOptin(body.submissionId,body.email,env.OPTIN_SIGNING_KEY);expect((await handleOptin(body,ctx)).status).toBe(200);expect(JSON.parse(ctx.fetch.mock.calls[0][1]!.body as string)).toMatchObject({submissionId:p.submissionId,email:'jane@acme.org',optedInAt:expect.any(String)});ctx.fetch.mockRejectedValue(new Error('offline'));expect(await handleOptin(body,ctx)).toEqual({status:502,body:{ok:false}});
+});
+
+test('concurrent submissions accept exactly five for the same IP hour',async()=>{
+ const ctx=context();
+ const results=await Promise.all(Array.from({length:20},()=>handleQuizSubmission(payload(),ctx)));
+ expect(results.filter(r=>r.status===200)).toHaveLength(5);
+ expect(results.filter(r=>r.status===429)).toHaveLength(15);
+ expect(ctx.fetch).toHaveBeenCalledTimes(5);
 });

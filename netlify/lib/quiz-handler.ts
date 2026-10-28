@@ -7,6 +7,10 @@ export interface KV {
   delete(k: string): Promise<void>;
   list(prefix: string): Promise<string[]>;
 }
+export interface RateStore {
+  // Atomically reserve one slot, or return false once the limit is reached.
+  reserve(key: string, limit: number): Promise<boolean>;
+}
 export interface QuizEnv {
   N8N_QUIZ_WEBHOOK_URL: string;
   N8N_OPTIN_WEBHOOK_URL: string;
@@ -38,7 +42,7 @@ async function forward(url: string, body: unknown, ctx: DeliveryContext): Promis
     return await Promise.race([delivery, deadline]);
   } finally { clearTimeout(timer); }
 }
-export async function handleQuizSubmission(body: unknown, ctx: DeliveryContext & { ip: string; now: number; outbox: KV; rate: KV }): Promise<{status: number; body: {ok: boolean; optinToken?: string; errors?: string[]}}> {
+export async function handleQuizSubmission(body: unknown, ctx: DeliveryContext & { ip: string; now: number; outbox: KV; rate: RateStore }): Promise<{status: number; body: {ok: boolean; optinToken?: string; errors?: string[]}}> {
   const invalid = (errors: string[]) => ({ status: 400, body: {ok: false, errors} });
   if (!object(body)) return invalid(['Submission must be an object.']);
   if (typeof body.website === 'string' && body.website.length > 0) return {status:202,body:{ok:true}};
@@ -70,9 +74,7 @@ export async function handleQuizSubmission(body: unknown, ctx: DeliveryContext &
   if (errors.length || !validated.ok || !uuid(body.submissionId)) return invalid(errors);
   const hour = new Date(ctx.now).toISOString().slice(0,13).replace(/[-T:]/g,'');
   const rateKey = `${ctx.ip}:${hour}`;
-  const count = Number(await ctx.rate.get(rateKey) ?? '0');
-  if (count >= 5) return {status:429,body:{ok:false}};
-  await ctx.rate.set(rateKey,String(count+1));
+  if (!await ctx.rate.reserve(rateKey,5)) return {status:429,body:{ok:false}};
   const result = scoreAll(validated.answers);
   const optinToken = signOptin(body.submissionId,email,ctx.env.OPTIN_SIGNING_KEY);
   const envelope: Envelope = {
