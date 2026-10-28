@@ -1,0 +1,12 @@
+import {pathToFileURL} from 'node:url';
+import {readEnv,twentyRestBase,apiRequest} from './quiz_deploy_helpers.mjs';
+const select=(name,label,values)=>({name,label,type:'SELECT',isNullable:true,options:values.map((value,position)=>({value,label:value.split('_').map(s=>s[0]+s.slice(1).toLowerCase()).join(' '),position,color:'green'}))});
+export const QUIZ_FIELDS=[select('leadSource','Lead Source',['QUIZ','WEBSITE','REFERRAL','OUTBOUND','OTHER']),select('segment','Segment',['DISCOVERY','NURTURE_LEADER','COURSE']),{name:'aiLevel',label:'AI Level',type:'NUMBER',isNullable:true},{name:'estAnnualValue',label:'Est. Annual Value',type:'CURRENCY',isNullable:true},select('leadStatus','Lead Status',['NEW','CONTACTED','IN_CONVERSATION','MEETING_BOOKED','NOT_INTERESTED','CLIENT']),{name:'courseOptIn',label:'Course Opt-in',type:'BOOLEAN',defaultValue:false,isNullable:false},{name:'courseOptInAt',label:'Course Opt-in At',type:'DATE_TIME',isNullable:true}];
+export async function ensureQuizFields(request,log=console.log){
+ const objects=[];let cursor;do{const d=await request('GET','/metadata/objects?limit=100'+(cursor?`&startingAfter=${encodeURIComponent(cursor)}`:''));objects.push(...(Array.isArray(d.data)?d.data:d.data.objects));cursor=d.pageInfo?.hasNextPage?d.pageInfo.endCursor:null;if(d.pageInfo?.hasNextPage&&!cursor)throw Error('Missing metadata pagination cursor');}while(cursor);
+ const person=objects.find(o=>o.nameSingular==='person');if(!person)throw Error('Person metadata missing');
+ // Preflight every collision before creating anything. Never mutate existing fields.
+ for(const desired of QUIZ_FIELDS){const existing=person.fields.find(f=>f.name===desired.name);if(existing&&(existing.type!==desired.type||(desired.options&&JSON.stringify(existing.options?.map(o=>o.value).sort())!==JSON.stringify(desired.options.map(o=>o.value).sort()))||(desired.type==='BOOLEAN'&&existing.defaultValue!==false)))throw Error(`Incompatible existing Person field: ${desired.name}`);}
+ for(const field of QUIZ_FIELDS){if(person.fields.some(f=>f.name===field.name)){log(`skipped ${field.name}`);continue;}await request('POST','/metadata/fields',{...field,objectMetadataId:person.id});log(`created ${field.name}`);}
+}
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){try{const env=await readEnv();await ensureQuizFields(apiRequest(twentyRestBase(env.SPAN_TWENTY_API_URL),{Authorization:`Bearer ${env.SPAN_TWENTY_API_KEY}`}));}catch(e){console.error(e.message);process.exitCode=1;}}

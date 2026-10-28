@@ -1,0 +1,1299 @@
+{
+  "name": "Span · Quiz Intake",
+  "nodes": [
+    {
+      "id": "fd6ab37c-e567-455f-862c-235966235cc5",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "span-quiz-intake-a9ee1f33366c9926c3ded81669ae22ee",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_SECRET_CREDENTIAL",
+          "name": "Span Quiz Webhook Secret"
+        }
+      },
+      "webhookId": "be4c48a0-cbf7-49c6-ac57-c6e49de79e02"
+    },
+    {
+      "id": "3c7bec8a-2659-4315-8f8b-7f069c20513f",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f829d033-c49b-482b-aec6-5e64e76c05aa",
+              "name": "ALERT_SEGMENTS",
+              "value": [
+                "discovery",
+                "nurture-leader",
+                "course"
+              ],
+              "type": "array"
+            },
+            {
+              "id": "67bde4f5-a0c0-4eb3-b78e-ffce74e70f9b",
+              "name": "CALENDAR_URL",
+              "value": "https://calendar.app.google/bNDHFsbv5cj88RzPA",
+              "type": "string"
+            },
+            {
+              "id": "eb3eedb9-3e37-4c67-9cc2-98b1caeb9930",
+              "name": "TWENTY_BASE",
+              "value": "https://crm.spanaisolutions.com/rest",
+              "type": "string"
+            },
+            {
+              "id": "6c068586-c14e-4289-885f-02948dbcb2a0",
+              "name": "KAMI_MEMBER_ID",
+              "value": "b5eee740-b5e0-40ba-9d82-1eba46e08899",
+              "type": "string"
+            },
+            {
+              "id": "1abaaaf9-ca84-499a-9e1a-64fb0c34c3c4",
+              "name": "SITE",
+              "value": "https://spanaisolutions.com",
+              "type": "string"
+            },
+            {
+              "id": "a25b7606-92fd-4d37-8820-c552d68a77f2",
+              "name": "TEST_MODE",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "40d2aa0f-0131-4718-8f0c-9a231d8da7eb",
+      "name": "Envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const c=$input.first().json;const env=c.body;if(!env?.contact?.email||!env?.result||!env?.submissionId)throw Error('Missing trusted quiz envelope');env.contact.email=env.contact.email.trim().toLowerCase();env.test=env.test===true||c.TEST_MODE===true;return [{json:{env,config:{ALERT_SEGMENTS:c.ALERT_SEGMENTS,TWENTY_BASE:c.TWENTY_BASE,KAMI_MEMBER_ID:c.KAMI_MEMBER_ID,SITE:c.SITE}}}];"
+      }
+    },
+    {
+      "id": "2fcd78e9-ad54-4d86-b551-0d02c62cf143",
+      "name": "Find submission Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE + '/notes?filter=' + encodeURIComponent('title[like]:%'+$('Envelope').first().json.env.submissionId+'%') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      }
+    },
+    {
+      "id": "5e29129a-6a78-42f2-aa15-f2d41ca5d9aa",
+      "name": "Skip duplicate Note",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nif(crmRows($input.first().json,'notes').length)return [];return $('Envelope').all();"
+      }
+    },
+    {
+      "id": "a19591b2-ab83-42b4-8b95-6e389f7cda33",
+      "name": "Build atomic Note claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include templates.js*/\n/*@include workflow.js*/\nconst {env}=$input.first().json;return [{json:noteClaimPayload(env,renderNoteMarkdown(env))}];"
+      }
+    },
+    {
+      "id": "15e71d07-3220-4555-ab38-9dcaa36566f7",
+      "name": "Claim submission UUID",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE.replace(/\\/rest$/, '/graphql') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      }
+    },
+    {
+      "id": "3e6d1dee-216d-41e8-a2da-8d0d8c44f20d",
+      "name": "Require claim winner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst response=$input.first().json;const env=$('Envelope').first().json.env;if(verifyClaim(response,env.submissionId))return $('Envelope').all();const errors=response.errors||[];if(errors.some(e=>/duplicate|already exists|unique constraint/i.test(e.message||'')))return [];throw Error('Quiz Note claim failed; no alert sent (inspect authenticated execution)');"
+      }
+    },
+    {
+      "id": "3345b8a1-bfcf-4d43-b53b-2783c9e9c4e4",
+      "name": "Alert segment enabled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e67ef3d6-a5a4-42e0-85b5-4b9bfa7bcc2f",
+              "leftValue": "={{ $('Envelope').first().json.config.ALERT_SEGMENTS.includes($('Envelope').first().json.env.result.segment) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3f9837d1-04b9-45f3-96a4-e8a60da92104",
+      "name": "Build Kami MIME",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include templates.js*/\n/*@include mime.js*/\n/*@include workflow.js*/\nconst {env}=$('Envelope').first().json;const mail=renderKamiAlert(env);return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:routeRecipient(env,mail.to),subject:mail.subject,html:mail.html,text:quizAnswerRows(env).map(q=>q.prompt+'\\n'+q.answer).join('\\n\\n')})}}];"
+      }
+    },
+    {
+      "id": "c5f359aa-8b53-4b4c-bd2d-316ed37daef7",
+      "name": "Send Kami alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {raw:$json.raw} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WHqx5RVIqdWt1t9l",
+          "name": "Span Gmail (josh@spanaisolutions.com)"
+        }
+      }
+    },
+    {
+      "id": "6600bba8-aa02-43b0-b8f9-a4e5d6ce364c",
+      "name": "Find Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE + '/people?filter=' + encodeURIComponent('emails.primaryEmail[eq]:'+$('Envelope').first().json.env.contact.email) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "81abeec6-9839-4e03-aa5c-5af92dd1f196",
+      "name": "Plan Person upsert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst {env,config}=$('Envelope').first().json;const response=$input.first().json;if(response.error)throw Error('Person lookup failed; refusing blind create');const rows=crmRows(response,'people');if(rows.length>1)throw Error('Multiple People match quiz email');return [{json:{method:rows.length?'PATCH':'POST',url:config.TWENTY_BASE+'/people'+(rows.length?'/'+rows[0].id:''),body:personPatch(env,!rows.length)}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "eaedca1e-45ae-44f1-9a55-7595ba1e6ce3",
+      "name": "Upsert Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        0
+      ],
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "b9beac61-d32e-4842-a82f-ee1a90882d86",
+      "name": "Keep Person ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst r=$input.first().json;const p=crmRecord(r,'createPerson')||crmRecord(r,'updatePerson');return [{json:{personId:p?.id||null}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "a2281211-bf42-4c17-9977-143f9065a42a",
+      "name": "Company needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3300,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a55b359c-9807-44da-a7ea-c7ce4463be91",
+              "leftValue": "={{ $('Envelope').first().json.env.result.path==='leader' && !!$('Envelope').first().json.env.contact.organization && !!$('Keep Person ID').first().json.personId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b7cd15d2-0605-40ea-b184-6eeb1b30e278",
+      "name": "Find Company",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/companies?filter='+encodeURIComponent('name[eq]:'+$('Envelope').first().json.env.contact.organization) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0bbb44c2-7246-41c5-813c-1e7502c88ff5",
+      "name": "Plan Company upsert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3740,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst response=$input.first().json;if(response.error)throw Error('Company lookup failed; refusing blind create');const rows=crmRows(response,'companies');if(rows.length>1)throw Error('Multiple Companies match organization');const {env,config}=$('Envelope').first().json;return [{json:{method:rows.length?'GET':'POST',url:config.TWENTY_BASE+'/companies'+(rows.length?'/'+rows[0].id:''),body:rows.length?{}:{name:env.contact.organization}}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "61f417f5-cf33-4d63-b62a-dc9871620011",
+      "name": "Upsert Company",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3960,
+        0
+      ],
+      "parameters": {
+        "method": "={{ $json.method }}",
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "859a9ee4-7a92-4cd4-b62c-c6b183008902",
+      "name": "Keep Company ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4180,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst r=$input.first().json;const c=crmRecord(r,'createCompany')||crmRecord(r,'company');return [{json:{companyId:c?.id||null}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "b3efe44a-2242-4fff-98ea-c2b83eab961f",
+      "name": "Link Company to Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4400,
+        0
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/people/'+$('Keep Person ID').first().json.personId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.companyId ? {companyId:$json.companyId} : {} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "929d7772-b3ff-484e-84e6-2cd0ac840459",
+      "name": "Person available",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4620,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "faa4398b-e887-44ec-9a80-0c9126676b1e",
+              "leftValue": "={{ !!$('Keep Person ID').first().json.personId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "50138062-7184-4227-8438-47c36f6caf85",
+      "name": "Link Note to Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4840,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/noteTargets' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {noteId:$('Envelope').first().json.env.submissionId,targetPersonId:$('Keep Person ID').first().json.personId} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "8aaadd8f-3fbf-4206-9f15-50ccfabb52ab",
+      "name": "Discovery task needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5060,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d0a97ceb-6b0e-481e-9595-ec54ae172ede",
+              "leftValue": "={{ $('Envelope').first().json.env.result.segment==='discovery' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e25a66c5-182d-4b1d-9d31-adcce06bc127",
+      "name": "Build Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5280,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst {env,config}=$('Envelope').first().json;return [{json:taskPayload(env,config.KAMI_MEMBER_ID)}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "9a4b002e-d75a-43a9-ba35-37d403032ecb",
+      "name": "Create Discovery Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5500,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/tasks' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "d518acee-0390-4bdf-bf7e-88ff5a38b6fe",
+      "name": "Task link payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5720,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include workflow.js*/\nconst task=crmRecord($input.first().json,'createTask');if(!task?.id)throw Error('Task not created; skipping invalid target');return [{json:{taskId:task.id,targetPersonId:$('Keep Person ID').first().json.personId}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "844aa781-f064-4bc3-93e4-48e009368d76",
+      "name": "Link Task to Person",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5940,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/taskTargets' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.taskId ? $json : {} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "172f904d-526e-454e-8afb-3547d31df17b",
+      "name": "Build ideas prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6160,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include ideas.js*/\nconst p=ideasPrompt($('Envelope').first().json.env);return [{json:{model:'claude-sonnet-5-5',max_tokens:1200,system:p.system,messages:[{role:'user',content:p.user}]}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "3a98d3d5-d35d-4e4c-a112-5e8c2261cc93",
+      "name": "Generate tailored ideas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6380,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "anthropicApi": {
+          "id": "IdQ8dCY3ShTanHdG",
+          "name": "Anthropic account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "00569b20-e84d-47be-8f9c-ab1c37dde3b8",
+      "name": "Build result MIME",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6600,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include ideas.js*/\n/*@include templates.js*/\n/*@include mime.js*/\n/*@include workflow.js*/\nconst {env,config}=$('Envelope').first().json;const text=($input.first().json.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\\n');const ideas=parseIdeas(text)||fallbackIdeas(env.answers.C1chip);const optinUrl=config.SITE+'/quiz/subscribed?s='+encodeURIComponent(env.submissionId)+'&e='+encodeURIComponent(env.contact.email)+'&t='+encodeURIComponent(env.optinToken);const mail=renderResultEmail(env,ideas,{optinUrl});return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:routeRecipient(env,env.contact.email),subject:(env.test?'[TEST] ':'')+mail.subject,html:mail.html,text:mail.text})}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "f46c85ce-966e-46c1-b62b-8acc68879b6d",
+      "name": "Send result email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        6820,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gmailOAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {raw:$json.raw} }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WHqx5RVIqdWt1t9l",
+          "name": "Span Gmail (josh@spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "25d88232-f1b9-43e5-bcfa-0ad0ec77b9b7",
+      "name": "Company research needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        7040,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f9d2bdff-362e-47b6-a663-1344299b6a09",
+              "leftValue": "={{ ['discovery','nurture-leader'].includes($('Envelope').first().json.env.result.segment) && !!$('Envelope').first().json.env.contact.organization }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fab79c5a-a659-4ae4-af2d-89f4161cf50c",
+      "name": "Tavily company research",
+      "type": "@tavily/n8n-nodes-tavily.tavily",
+      "typeVersion": 1,
+      "position": [
+        7260,
+        0
+      ],
+      "parameters": {
+        "query": "={{ '\"'+$('Envelope').first().json.env.contact.organization+'\" '+$('Envelope').first().json.env.contact.email.split('@')[1] }}",
+        "options": {
+          "max_results": 5
+        }
+      },
+      "credentials": {
+        "tavilyApi": {
+          "id": "68czfi9OSxDZTOMt",
+          "name": "JOSH Personal Tavily account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "9450013d-1116-4f64-b528-45f7126f0e3b",
+      "name": "Append five research bullets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7480,
+        0
+      ],
+      "parameters": {
+        "jsCode": "/*@include templates.js*/\n/*@include workflow.js*/\nconst env=$('Envelope').first().json.env;const summary=researchMarkdown($input.first().json);const note=renderNoteMarkdown(env);return [{json:{bodyV2:richText(note.markdown+(summary?'\\n\\n## Company research\\n\\n'+summary:''))}}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "7e9ee840-f723-46c0-8f1a-1a0ed9cf66ad",
+      "name": "Update submission Note",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7700,
+        0
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('Envelope').first().json.config.TWENTY_BASE+'/notes/'+$('Envelope').first().json.env.submissionId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vFmo7UyOTXRAI3LH",
+          "name": "Span Twenty CRM (crm.spanaisolutions.com)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Envelope",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envelope": {
+      "main": [
+        [
+          {
+            "node": "Find submission Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find submission Note": {
+      "main": [
+        [
+          {
+            "node": "Skip duplicate Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip duplicate Note": {
+      "main": [
+        [
+          {
+            "node": "Build atomic Note claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build atomic Note claim": {
+      "main": [
+        [
+          {
+            "node": "Claim submission UUID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim submission UUID": {
+      "main": [
+        [
+          {
+            "node": "Require claim winner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Require claim winner": {
+      "main": [
+        [
+          {
+            "node": "Alert segment enabled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert segment enabled": {
+      "main": [
+        [
+          {
+            "node": "Build Kami MIME",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Find Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Kami MIME": {
+      "main": [
+        [
+          {
+            "node": "Send Kami alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Kami alert": {
+      "main": [
+        [
+          {
+            "node": "Find Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Person": {
+      "main": [
+        [
+          {
+            "node": "Plan Person upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Person upsert": {
+      "main": [
+        [
+          {
+            "node": "Upsert Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Person": {
+      "main": [
+        [
+          {
+            "node": "Keep Person ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Person ID": {
+      "main": [
+        [
+          {
+            "node": "Company needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company needed": {
+      "main": [
+        [
+          {
+            "node": "Find Company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Person available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Company": {
+      "main": [
+        [
+          {
+            "node": "Plan Company upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Company upsert": {
+      "main": [
+        [
+          {
+            "node": "Upsert Company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Company": {
+      "main": [
+        [
+          {
+            "node": "Keep Company ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Company ID": {
+      "main": [
+        [
+          {
+            "node": "Link Company to Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Company to Person": {
+      "main": [
+        [
+          {
+            "node": "Person available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Person available": {
+      "main": [
+        [
+          {
+            "node": "Link Note to Person",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build ideas prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Note to Person": {
+      "main": [
+        [
+          {
+            "node": "Discovery task needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discovery task needed": {
+      "main": [
+        [
+          {
+            "node": "Build Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build ideas prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Task": {
+      "main": [
+        [
+          {
+            "node": "Create Discovery Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Discovery Task": {
+      "main": [
+        [
+          {
+            "node": "Task link payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task link payload": {
+      "main": [
+        [
+          {
+            "node": "Link Task to Person",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Task to Person": {
+      "main": [
+        [
+          {
+            "node": "Build ideas prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ideas prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate tailored ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate tailored ideas": {
+      "main": [
+        [
+          {
+            "node": "Build result MIME",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build result MIME": {
+      "main": [
+        [
+          {
+            "node": "Send result email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send result email": {
+      "main": [
+        [
+          {
+            "node": "Company research needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company research needed": {
+      "main": [
+        [
+          {
+            "node": "Tavily company research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily company research": {
+      "main": [
+        [
+          {
+            "node": "Append five research bullets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append five research bullets": {
+      "main": [
+        [
+          {
+            "node": "Update submission Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
