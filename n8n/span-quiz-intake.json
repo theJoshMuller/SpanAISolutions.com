@@ -694,7 +694,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "/*@include ideas.js*/\nconst p=ideasPrompt($('Envelope').first().json.env);return [{json:{model:'claude-sonnet-5-5',max_tokens:1200,system:p.system,messages:[{role:'user',content:p.user}]}}];"
+        "jsCode": "/*@include ideas.js*/\nreturn [{json:ideasRequest($('Envelope').first().json.env)}];"
       },
       "onError": "continueRegularOutput"
     },
@@ -709,9 +709,9 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
         "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "anthropicApi",
+        "nodeCredentialType": "openRouterApi",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ $json }}",
@@ -722,16 +722,20 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
+              "name": "HTTP-Referer",
+              "value": "https://spanaisolutions.com"
+            },
+            {
+              "name": "X-Title",
+              "value": "Span AI Level Quiz"
             }
           ]
         }
       },
       "credentials": {
-        "anthropicApi": {
-          "id": "IdQ8dCY3ShTanHdG",
-          "name": "Anthropic account"
+        "openRouterApi": {
+          "id": "qEF36elu9tmPMkfQ",
+          "name": "Josh's OpenRouter API Key"
         }
       },
       "onError": "continueRegularOutput"
@@ -746,7 +750,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "/*@include ideas.js*/\n/*@include templates.js*/\n/*@include mime.js*/\n/*@include workflow.js*/\nconst {env,config}=$('Envelope').first().json;const text=($input.first().json.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\\n');const ideas=parseIdeas(text)||fallbackIdeas(env.answers.C1chip);const optinUrl=config.SITE+'/quiz/subscribed?s='+encodeURIComponent(env.submissionId)+'&e='+encodeURIComponent(env.contact.email)+'&t='+encodeURIComponent(env.optinToken);const mail=renderResultEmail(env,ideas,{optinUrl});return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:routeRecipient(env,env.contact.email),subject:(env.test?'[TEST] ':'')+mail.subject,html:mail.html,text:mail.text})}}];"
+        "jsCode": "/*@include ideas.js*/\n/*@include templates.js*/\n/*@include mime.js*/\n/*@include workflow.js*/\nconst {env,config}=$('Envelope').first().json;const text=ideasText($input.first().json);const ideas=parseIdeas(text)||fallbackIdeas(env.answers.C1chip);const optinUrl=config.SITE+'/quiz/subscribed?s='+encodeURIComponent(env.submissionId)+'&e='+encodeURIComponent(env.contact.email)+'&t='+encodeURIComponent(env.optinToken);const mail=renderResultEmail(env,ideas,{optinUrl});return [{json:{raw:buildRawMime({from:\"\\\"Josh & Kami at Span\\\" <hello@spanaisolutions.com>\",to:routeRecipient(env,env.contact.email),subject:(env.test?'[TEST] ':'')+mail.subject,html:mail.html,text:mail.text})}}];"
       },
       "onError": "continueRegularOutput"
     },
