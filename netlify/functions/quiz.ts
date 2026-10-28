@@ -1,13 +1,11 @@
-import type { Context } from '@netlify/functions';
-import { handleQuizSubmission } from '../lib/quiz-handler';
-import { environment, store, rateStore } from '../lib/runtime';
-export default async (request: Request, context: Context): Promise<Response> => {
-  if (request.method !== 'POST') return Response.json({ok:false}, {status:405,headers:{Allow:'POST'}});
-  let body: unknown;
-  try { body = await request.json(); } catch { return Response.json({ok:false,errors:['Invalid JSON.']},{status:400}); }
-  try {
-    const result = await handleQuizSubmission(body,{ip:context.ip,now:Date.now(),env:environment(),fetch,outbox:store('quiz-outbox'),rate:rateStore('quiz-rate')});
-    return Response.json(result.body,{status:result.status});
-  } catch { return Response.json({ok:false},{status:503}); }
+import type { Config } from '@netlify/functions';
+
+// Quiz paused until the course is ready. Restore the active wrapper from 77eb988.
+export default async (request: Request): Promise<Response> => {
+  if (new URL(request.url).pathname.startsWith('/quiz')) {
+    // Do not forward old opt-in email addresses or signed tokens into the home URL.
+    return new Response(null, { status: 302, headers: { Location: '/', 'Cache-Control': 'no-store' } });
+  }
+  return Response.json({ ok: false, error: 'Quiz is paused.' }, { status: 410, headers: { 'Cache-Control': 'no-store' } });
 };
-export const config = { path: '/api/quiz' };
+export const config: Config = { path: ['/api/quiz', '/quiz', '/quiz/*'] };

@@ -9,6 +9,7 @@ docs/review/.pdf-parts/
 assets/source-photos/
 .astro/
 .env
+.private/
 .DS_Store
 
 # Beads / Dolt files (added by bd init)

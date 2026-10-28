@@ -6,23 +6,35 @@ import quiz,{config as quizConfig} from '../../netlify/functions/quiz';
 import optin,{config as optinConfig} from '../../netlify/functions/optin';
 import replay,{config as replayConfig} from '../../netlify/functions/quiz-replay';
 import {store,rateStore} from '../../netlify/lib/runtime';
-import type { Context } from '@netlify/functions';
 afterEach(()=>vi.unstubAllGlobals());
-test('wrappers reject non-POST and malformed JSON locally',async()=>{
- const ctx={ip:'127.0.0.1'} as Context;
- expect((await quiz(new Request('https://example.test/api/quiz'),ctx)).status).toBe(405);
- expect((await optin(new Request('https://example.test/api/optin'))).status).toBe(405);
- const request=()=>new Request('https://example.test/api/quiz',{method:'POST',body:'{'});
- expect((await quiz(request(),ctx)).status).toBe(400);
- expect((await optin(request())).status).toBe(400);
- expect(quizConfig.path).toBe('/api/quiz');expect(optinConfig.path).toBe('/api/optin');expect(replayConfig.schedule).toBe('*/10 * * * *');
+test('paused wrappers reject every submission without parsing or networking',async()=>{
+ vi.stubGlobal('fetch',vi.fn(()=>{throw new Error('Unexpected network');}));
+ for(const method of ['GET','POST']) {
+  const request=(path:string)=>new Request('https://example.test'+path,{method,...(method==='POST'?{body:'{'}:{})});
+  expect((await quiz(request('/api/quiz'))).status).toBe(410);
+  expect((await optin(request('/api/optin'))).status).toBe(410);
+ }
+ expect(fetch).not.toHaveBeenCalled();
+ expect(quizConfig.path).toEqual(['/api/quiz','/quiz','/quiz/*']);
+ expect(optinConfig.path).toBe('/api/optin');
+ expect(replayConfig).not.toHaveProperty('schedule');
+});
+test('old quiz links redirect home without forwarding personal data or tokens',async()=>{
+ for(const path of ['/quiz','/quiz/','/quiz/subscribed?s=old&e=private%40example.com&t=signed']) {
+  const response=await quiz(new Request('https://example.test'+path));
+  expect(response.status).toBe(302);expect(response.headers.get('Location')).toBe('/');
+  expect(response.headers.get('Cache-Control')).toBe('no-store');
+ }
 });
 test('blob adapter lists every page and uses text reads',async()=>{
  const kv=store('quiz-outbox');expect(await kv.list('')).toEqual(['first','second']);await kv.get('first');expect(blobs.get).toHaveBeenCalledWith('first',{type:'text'});
 });
-test('scheduled wrapper runs against injected local blob store without networking',async()=>{
+test('paused replay has no schedule and cannot touch the retained outbox',async()=>{
+ for(const mock of [blobs.get,blobs.list,blobs.delete])mock.mockClear();
  vi.stubGlobal('fetch',vi.fn(()=>{throw new Error('Unexpected network');}));
- const response=await replay();expect(await response.json()).toEqual({sent:0,failed:0});expect(fetch).not.toHaveBeenCalled();
+ const response=await replay();expect(response.status).toBe(410);expect(fetch).not.toHaveBeenCalled();
+ expect(blobs.get).not.toHaveBeenCalled();expect(blobs.list).not.toHaveBeenCalled();expect(blobs.delete).not.toHaveBeenCalled();
+ expect(replayConfig).not.toHaveProperty('schedule');
 });
 
 test('rate reservations retry create and update conflicts using fresh etags',async()=>{
@@ -73,15 +85,16 @@ test('independent Blob rate adapters reserve exactly five under concurrent conte
  expect(results.filter(r=>!r)).toHaveLength(15);
  expect(current).toMatchObject({data:'5'});
 });
-test('quiz wrapper returns 503 without delivery when reservation storage fails',async()=>{
+test('paused quiz bypasses storage entirely even for a valid old submission',async()=>{
  blobs.getWithMetadata.mockReset().mockRejectedValue(new Error('offline'));
  vi.stubGlobal('fetch',vi.fn(()=>{throw new Error('Unexpected network');}));
  const body={submissionId:'123e4567-e89b-42d3-a456-426614174000',startedAt:new Date(Date.now()-30000).toISOString(),website:'',
    answers:{A1:'owner',A2:'10-49',B1:2,B2:2,B3:2,B4:2,B5:2,C1:'Building weekly reports',C2:'5-10',C3:3,C4:null,D1:'for',D2:null},
    contact:{firstName:'Jane',email:'jane@acme.org',organization:'Acme',phone:null},
    attribution:{utm_source:null,utm_medium:null,utm_campaign:null,referrer:null,landingPath:'/quiz'}};
- const response=await quiz(new Request('https://example.test/api/quiz',{method:'POST',body:JSON.stringify(body)}),{ip:'127.0.0.1'} as Context);
- expect(response.status).toBe(503);
- expect(await response.json()).toEqual({ok:false});
+ const response=await quiz(new Request('https://example.test/api/quiz',{method:'POST',body:JSON.stringify(body)}));
+ expect(response.status).toBe(410);
+ expect(await response.json()).toEqual({ok:false,error:'Quiz is paused.'});
+ expect(blobs.getWithMetadata).not.toHaveBeenCalled();
  expect(fetch).not.toHaveBeenCalled();
 });
