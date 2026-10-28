@@ -16,13 +16,14 @@ test('paused wrappers reject every submission without parsing or networking',asy
  }
  expect(fetch).not.toHaveBeenCalled();
  expect(quizConfig.path).toEqual(['/api/quiz','/quiz','/quiz/*']);
+ expect(quizConfig.preferStatic).toBe(true); // Preserve gauge images in previously delivered result emails.
  expect(optinConfig.path).toBe('/api/optin');
  expect(replayConfig).not.toHaveProperty('schedule');
 });
 test('old quiz links redirect home without forwarding personal data or tokens',async()=>{
  for(const path of ['/quiz','/quiz/','/quiz/subscribed?s=old&e=private%40example.com&t=signed']) {
   const response=await quiz(new Request('https://example.test'+path));
-  expect(response.status).toBe(302);expect(response.headers.get('Location')).toBe('/');
+  expect(response.status).toBe(302);expect(response.headers.get('Location')).toBe(path.includes('?')?'/?quiz=paused':'/');
   expect(response.headers.get('Cache-Control')).toBe('no-store');
  }
 });

@@ -6,7 +6,7 @@ Josh requested the quiz be shut down and removed from the main site on 2026-10-2
 
 - Header/mobile navigation and homepage quiz CTA removed.
 - Original pages preserved byte-for-byte under `src/pages/_quiz/`; Astro excludes underscore-prefixed directories from published routes.
-- `/quiz` and `/quiz/*` temporarily redirect home through the disabled quiz function. Old email/signed-token query strings are not forwarded.
+- `/quiz` and `/quiz/*` temporarily redirect home through the disabled quiz function. Requests with query strings use the benign destination `/?quiz=paused` because Netlify otherwise forwards the original query; old email/signed-token values are not forwarded. Existing static gauge images remain accessible for previously delivered result emails.
 - `/api/quiz` and `/api/optin` return HTTP 410 before parsing, storing or forwarding data.
 - `quiz-replay` has no schedule and returns HTTP 410; it cannot read, deliver or delete the retained outbox.
 - These three n8n workflows are inactive/unpublished, with their definitions retained:
